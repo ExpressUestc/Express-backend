@@ -2,6 +2,8 @@
 import os
 import qrcode
 from django.http import JsonResponse
+from django.http import HttpResponse
+from django.template import loader
 from django.shortcuts import render
 
 # Create your views here.
@@ -24,3 +26,7 @@ def index(request):
     # Todo:fix the response
     response = {'name':name,'code':code,'address':address,'phone':phone}
     return JsonResponse(response)
+
+def pic(request):
+    template = loader.get_template('Express/showQrcode.html')
+    return HttpResponse(template.render(request))
