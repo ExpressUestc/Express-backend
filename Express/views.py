@@ -4,7 +4,8 @@ import qrcode
 from django.http import JsonResponse
 from django.http import HttpResponse
 from django.template import loader
-from django.shortcuts import render
+from django.shortcuts import render, render_to_response
+
 
 # Create your views here.
 def index(request):
@@ -19,14 +20,15 @@ def index(request):
     q.add_data(name+'\n'+address+'\n'+phone)
     q.make()
     m = q.make_image()
-    m.save('test.png')
     # 3.create random string with 10 characters
     code = (''.join(map(lambda xx:(hex(ord(xx))[2:]),os.urandom(16))))[0:16][0:10]
+    m.save(code+'.png')
     # 4.create response
     # Todo:fix the response
-    response = {'name':name,'code':code,'address':address,'phone':phone}
+    url = 'http://localhost:8000/express/pic/?code='+code
+    response = {'code':code,'url':url}
     return JsonResponse(response)
 
 def pic(request):
-    template = loader.get_template('Express/showQrcode.html')
-    return HttpResponse(template.render(request))
+    code = request.GET['code']
+    return render_to_response('Express/showQrcode.html',{'image':code+'.png'})
