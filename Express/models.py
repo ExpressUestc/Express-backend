@@ -20,6 +20,8 @@ class Express(models.Model):
     send_address = models.CharField(max_length=100)
     send_postcode = models.CharField(max_length=20)
     extra_price = models.CharField(max_length=20)
+    # add position
+    pos = models.CharField(max_length=100)
 
     def __str__(self):
         return self.receive_name+self.receive_phone+self.code

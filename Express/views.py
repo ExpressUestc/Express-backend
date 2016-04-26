@@ -48,7 +48,7 @@ def index(request):
                     code=code)
     express.save()
 
-    # 4.create response
+    # 7.create response
     # Todo:the url is hard-coded!
     url = 'http://localhost:8000/express/pic/?code='+code
     response = {'code':code,'url':url}
@@ -57,3 +57,14 @@ def index(request):
 def pic(request):
     code = request.GET['code']
     return render_to_response('Express/showQrcode.html',{'image':code+'.png'})
+
+def sending(request):
+    code = request.GET['code']
+    pos = request.GET['pos']
+    express = Express.objects.get(code=code)
+    express.pos = pos
+    express.save()
+    # Todo:add if else
+    feedback = '位置已上传'
+    response = {'feedback':feedback}
+    return JsonResponse(response)
