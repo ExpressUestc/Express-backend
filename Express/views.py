@@ -68,3 +68,16 @@ def sending(request):
     feedback = '位置已上传'
     response = {'feedback':feedback}
     return JsonResponse(response)
+
+def find(request):
+    rcvName = request.GET['rcvName']
+    rcvPhone = request.GET['rcvPhone']
+    code = request.GET['code']
+    # using code to get the express object
+    express = Express.objects.get(code=code)
+    # get position
+    pos = express.pos
+    response = {'pos':pos}
+    return JsonResponse(response)
+
+
