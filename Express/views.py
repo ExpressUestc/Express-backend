@@ -8,6 +8,8 @@ from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import render, render_to_response
 from .models import Express
+import sendmessage
+
 
 # Create your views here.
 def index(request):
@@ -80,4 +82,12 @@ def find(request):
     response = {'pos':pos}
     return JsonResponse(response)
 
-
+def distribute(request):
+    code = request.GET['code']
+    express = Express.objects.get(code=code)
+    rcvName =  express.receive_name
+    rcvAddress = express.receive_address
+    goods = express.goods
+    rcvPhone = express.receive_phone
+    response = sendmessage.sendmessage(rcvName,goods,rcvAddress,code,rcvPhone)
+    return HttpResponse(response)
