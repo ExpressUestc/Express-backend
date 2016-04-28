@@ -84,10 +84,24 @@ def find(request):
 
 def distribute(request):
     code = request.GET['code']
+    deliverPhone = request.GET['deliverPhone']
+    # using code to get the express object
     express = Express.objects.get(code=code)
     rcvName =  express.receive_name
     rcvAddress = express.receive_address
     goods = express.goods
     rcvPhone = express.receive_phone
+    # saving deliverPhone into database
+    # Todo:the foriegn key is oneVSall need to be fixed
+    express.deliverman_set.create(deliverPhone=deliverPhone)
+    # send message to receiver and return the response
     response = sendmessage.sendmessage(rcvName,goods,rcvAddress,code,rcvPhone)
     return HttpResponse(response)
+
+def auth(request):
+    flag = request.GET['flag']
+    code = request.GET['code']
+    # using code to get the express object
+    express = Express.objects.get(code=code)
+    if flag == False:
+        sendmessage.sendmessage()
