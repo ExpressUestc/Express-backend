@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import render, render_to_response
-from .models import Express
+from Express.models import Express,DeliverMan
 import sendmessage
 
 
@@ -92,10 +92,11 @@ def distribute(request):
     goods = express.goods
     rcvPhone = express.receive_phone
     # saving deliverPhone into database
-    # Todo:the foriegn key is oneVSall need to be fixed
-    express.deliverman_set.create(deliverPhone=deliverPhone)
+    # Todo:the Chinese character in the message have bugs
+    deliverman = DeliverMan(express =express,deliverPhone=deliverPhone)
+    deliverman.save()
     # send message to receiver and return the response
-    response = sendmessage.sendmessage(rcvName,goods,rcvAddress,code,rcvPhone)
+    response = sendmessage.distribute(rcvName,goods,rcvAddress,code,rcvPhone)
     return HttpResponse(response)
 
 def auth(request):
@@ -103,5 +104,10 @@ def auth(request):
     code = request.GET['code']
     # using code to get the express object
     express = Express.objects.get(code=code)
-    if flag == False:
-        sendmessage.sendmessage()
+    # if auth fails ,send warning message to the deliverman
+    # Todo: response has a lot to consider
+    if flag == '0':
+        response =  sendmessage.warn(code,express.deliverman.deliverPhone)
+    else:
+        response = None
+    return HttpResponse(response)

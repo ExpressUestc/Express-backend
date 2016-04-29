@@ -417,7 +417,7 @@ class RestAPI:
 		req = urllib2.Request(url)
 		return urlOpen(createHttpReq(req,url,accountSid,timestamp,responseMode,body))
 
-def sendmessage(rcvName,goods,rcvAddress,code,rcvPhone):
+def distribute(rcvName,goods,rcvAddress,code,rcvPhone):
 	test = RestAPI()
 
 	accountSid = "33794bdc8d67381a8b15525d34e71497"
@@ -477,3 +477,19 @@ def sendmessage(rcvName,goods,rcvAddress,code,rcvPhone):
 	return test.templateSMS(accountSid,accountToken,appId,toNumber,templateId,param,isUseJson)
 
 
+def warn(code,deliverPhone):
+	test = RestAPI()
+
+	accountSid = "33794bdc8d67381a8b15525d34e71497"
+	accountToken = "a1e13e2d02168478d5090d261c8336e9"
+	appId = "c6428977adc24007aef6068e239d7724"
+
+	isUseJson = True
+
+	toNumber = deliverPhone
+
+	templateId = "23525"
+
+	param=code
+
+	return test.templateSMS(accountSid, accountToken, appId, toNumber, templateId, param, isUseJson)

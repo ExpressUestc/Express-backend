@@ -26,7 +26,9 @@ class Express(models.Model):
     def __str__(self):
         return self.receive_name+self.receive_phone+self.code
 
-class deliverman(models.Model):
-    express = models.ForeignKey(Express,on_delete=models.CASCADE)
+class DeliverMan(models.Model):
+    express = models.OneToOneField(Express,on_delete=models.CASCADE)
     deliverPhone = models.CharField(max_length=20)
 
+    def __str__(self):
+        return "deliverman's phone is %s" % self.deliverPhone
