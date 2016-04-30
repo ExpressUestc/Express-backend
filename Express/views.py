@@ -10,6 +10,7 @@ from django.template import loader
 from django.shortcuts import render, render_to_response
 from Express.models import Express,DeliverMan,VerifyCode
 import sendmessage
+import datetime
 
 
 # Create your views here.
@@ -126,5 +127,22 @@ def getVerify(request):
     # saving verifycode into database
     verifycode = VerifyCode(express=express,verifycode=verifyCode,codedate=createDate)
     verifycode.save()
-
+    # Todo:add if else
+    feedback = '验证码已发送'
+    response = {'feedback':feedback}
     return HttpResponse(response)
+
+def authVerify(request):
+    verify = request.GET['verify']
+    code = request.GET['code']
+    express = Express.objects.get(code=code)
+    # 1.during 3 minutes
+    past =  int(express.verifycode.codedate)
+    now = int(datetime.datetime.strftime(datetime.datetime.now(),'%Y%m%d%H%M%S'))
+    timePeriod = now-past
+    feedback = '验证失败'
+    if timePeriod<300:
+        # 2.verifycode must be the same
+        if verify == express.verifycode.verifycode:
+            feedback = '验证成功'
+#           Todo:send message to deliverman
