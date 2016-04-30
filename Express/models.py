@@ -32,3 +32,10 @@ class DeliverMan(models.Model):
 
     def __str__(self):
         return "deliverman's phone is %s" % self.deliverPhone
+
+
+class VerifyCode(models.Model):
+    express = models.OneToOneField(Express,on_delete=models.CASCADE)
+    verifycode = models.CharField(max_length=10)
+    codestatus = models.BooleanField(default=False)
+    codedate = models.CharField(max_length=20)

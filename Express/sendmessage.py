@@ -425,25 +425,7 @@ def distribute(rcvName,goods,rcvAddress,code,rcvPhone):
 	appId = "c6428977adc24007aef6068e239d7724"
 
 
-	to="13012345678"
-	fromClient="66098000367509"
-	fromSerNum="075512345678"
-	toSerNum="13512345678"
-	clientNumber="66098000367509"
-	mobile = "15012345678"
-	friendlyName = "test007"
-	# 1分钱 = 10000。 charge单位是元
-	charge = "8"
-	clientType = "1"
-	start = "0"
-	limit = "100"
 	isUseJson = True
-	date = "day"
-	chargeType="0"
-	maxAllowTime="60"
-	displayNum="15012345678"
-	verifyCode="1234"
-
 
     # toNumber="18161251991"
 	toNumber=rcvPhone
@@ -453,26 +435,6 @@ def distribute(rcvName,goods,rcvAddress,code,rcvPhone):
 	param=rcvName+','+code+','+goods+','+rcvAddress
     # param="ryh,336,气球,电子科大"
 
-	#查询主账号
-	#print(test.getAccountInfo(accountSid,accountToken,isUseJson))
-	#申请子账号
-	#print(test.applyClient(accountSid,accountToken,appId,clientType,charge,friendlyName,mobile,isUseJson))
-	#查询子账号列表
-	#print(test.getClientList(accountSid,accountToken,appId,start,limit,isUseJson))
-	#删除一个子账号
-	#print(test.ReleaseClient(accountSid,accountToken,clientNumber,appId,isUseJson))
-	#查询子账号信息(clientNumber方式)
-	#print(test.getClientInfo(accountSid,accountToken,appId,clientNumber,isUseJson))
-	#查询子账号信息(mobile方式)
-	#print(test.getClientInfoByMobile(accountSid,accountToken,appId,mobile,isUseJson))
-	#查询应用话单
-	#print(test.getBillList(accountSid,accountToken,appId,date,isUseJson))
-	#子账号充值
-	#print(test.chargeClient(accountSid,accountToken,appId,clientNumber,chargeType,charge,isUseJson))
-	#回拨
-	#print(test.callBack(accountSid,accountToken,appId,fromClient,to,fromSerNum,toSerNum,maxAllowTime,isUseJson))
-	#语音验证码
-	#print(test.voiceCode(accountSid,accountToken,appId,verifyCode,toNumber,isUseJson))
 	#短信
 	return test.templateSMS(accountSid,accountToken,appId,toNumber,templateId,param,isUseJson)
 
@@ -493,3 +455,20 @@ def warn(code,deliverPhone):
 	param=code
 
 	return test.templateSMS(accountSid, accountToken, appId, toNumber, templateId, param, isUseJson)
+
+def getVerify(verifyCode,rcvPhone):
+    test = RestAPI()
+
+    accountSid = "33794bdc8d67381a8b15525d34e71497"
+    accountToken = "a1e13e2d02168478d5090d261c8336e9"
+    appId = "c6428977adc24007aef6068e239d7724"
+
+    isUseJson = True
+
+    toNumber = rcvPhone
+
+    templateId = "23540"
+
+    param = verifyCode+','+'3'
+
+    return test.templateSMS(accountSid, accountToken, appId, toNumber, templateId, param, isUseJson)

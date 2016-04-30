@@ -1,4 +1,5 @@
 # coding:utf8
+import json
 import os
 import shutil
 
@@ -7,7 +8,7 @@ from django.http import JsonResponse
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import render, render_to_response
-from Express.models import Express,DeliverMan
+from Express.models import Express,DeliverMan,VerifyCode
 import sendmessage
 
 
@@ -29,7 +30,7 @@ def index(request):
         remarks = request.GET['remarks']
 
     # 2.create random string with 10 characters
-    code = (''.join(map(lambda xx: (hex(ord(xx))[2:]), os.urandom(16))))[0:16][0:10]
+    code = (''.join(map(lambda xx: (hex(ord(xx))[2:]), os.urandom(16))))[0:10]
 
     # 3.create Qrcode
     # Todo:optimize the code structure
@@ -110,4 +111,20 @@ def auth(request):
         response =  sendmessage.warn(code,express.deliverman.deliverPhone)
     else:
         response = None
+    return HttpResponse(response)
+
+def getVerify(request):
+    code = request.GET['code']
+    express = Express.objects.get(code=code)
+    rcvPhone = express.receive_phone
+    verifyCode = (''.join(map(lambda xx: (hex(ord(xx))[2:]), os.urandom(16))))[0:6]
+    # send message
+    response = sendmessage.getVerify(verifyCode=verifyCode,rcvPhone=rcvPhone)
+    # get createDate
+    jsonResponse = json.loads(response)
+    createDate =  jsonResponse["resp"]["templateSMS"]["createDate"]
+    # saving verifycode into database
+    verifycode = VerifyCode(express=express,verifycode=verifyCode,codedate=createDate)
+    verifycode.save()
+
     return HttpResponse(response)
