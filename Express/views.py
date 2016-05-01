@@ -142,7 +142,15 @@ def authVerify(request):
     timePeriod = now-past
     feedback = '验证失败'
     if timePeriod<300:
-        # 2.verifycode must be the same
-        if verify == express.verifycode.verifycode:
+        # 2.verifycode must be the same and the code should be used only once
+        if verify == express.verifycode.verifycode and express.verifycode.codestatus==False :
             feedback = '验证成功'
-#           Todo:send message to deliverman
+            sendmessage.succeedVerify(code=code,deliverPhone=express.deliverman.deliverPhone)
+            express.verifycode.codestatus = True
+            express.verifycode.save()
+    else:
+        sendmessage.warn(code=code,deliverPhone=express.deliverman.deliverPhone)
+
+    response = {'feedback':feedback}
+
+    return HttpResponse(response)

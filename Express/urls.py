@@ -9,5 +9,6 @@ urlpatterns = [
     url(r'^find/$',views.find,name='find'),
     url(r'^distribute/$',views.distribute,name='distribute'),
     url(r'^auth/$',views.auth,name='auth'),
-    url(r'^getVerify/$',views.getVerify,name='getVerify')
+    url(r'^getVerify/$',views.getVerify,name='getVerify'),
+    url(r'^authVerify/$',views.auth,name='authVerify')
 ]

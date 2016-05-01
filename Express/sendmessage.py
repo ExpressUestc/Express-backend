@@ -472,3 +472,20 @@ def getVerify(verifyCode,rcvPhone):
     param = verifyCode+','+'3'
 
     return test.templateSMS(accountSid, accountToken, appId, toNumber, templateId, param, isUseJson)
+
+def succeedVerify(code,deliverPhone):
+    test = RestAPI()
+
+    accountSid = "33794bdc8d67381a8b15525d34e71497"
+    accountToken = "a1e13e2d02168478d5090d261c8336e9"
+    appId = "c6428977adc24007aef6068e239d7724"
+
+    isUseJson = True
+
+    toNumber = deliverPhone
+
+    templateId = "23576"
+
+    param = code
+
+    return test.templateSMS(accountSid, accountToken, appId, toNumber, templateId, param, isUseJson)
