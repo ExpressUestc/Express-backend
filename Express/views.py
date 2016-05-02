@@ -13,6 +13,9 @@ import sendmessage
 import datetime
 
 
+def test(request):
+    return HttpResponse('This is test')
+
 # Create your views here.
 def index(request):
     # 1.get info from the request
