@@ -116,21 +116,30 @@ def auth(request):
 
 def getVerify(request):
     code = request.GET['code']
+
     express = Express.objects.get(code=code)
+
     rcvPhone = express.receive_phone
     verifyCode = (''.join(map(lambda xx: (hex(ord(xx))[2:]), os.urandom(16))))[0:6]
+
     # send message
     response = sendmessage.getVerify(verifyCode=verifyCode,rcvPhone=rcvPhone)
-    # get createDate
+
     jsonResponse = json.loads(response)
-    createDate =  jsonResponse["resp"]["templateSMS"]["createDate"]
-    # saving verifycode into database
-    verifycode = VerifyCode(express=express,verifycode=verifyCode,codedate=createDate)
-    verifycode.save()
-    # Todo:add if else
-    feedback = '验证码已发送'
+    # Todo:if send 10 or more messages there'll be an exception
+    try:
+        createDate =  jsonResponse["resp"]["templateSMS"]["createDate"]
+        # saving verifycode into database
+        if express.verifycode is not None:
+            express.verifycode.delete()
+        verifycode = VerifyCode(express=express, verifycode=verifyCode, codedate=createDate)
+        verifycode.save()
+        feedback = '验证码已发送'
+    except KeyError ,e:
+        feedback = '请求过于频繁，请稍后再试'
+
     response = {'feedback':feedback}
-    return HttpResponse(response)
+    return JsonResponse(response)
 
 def authVerify(request):
     verify = request.GET['verify']
