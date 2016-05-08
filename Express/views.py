@@ -44,10 +44,10 @@ def index(request):
     m = q.make_image()
 
     # 4.produce the picture
-    m.save(code+'.png')  #qrcode picture's name is 'code'
+    m.save('./static/polls/'+code+'.png')  #qrcode picture's name is 'code'
 
     # 5.move it to the pointed directory
-    shutil.move(code+'.png','static/polls')
+    # shutil.move(code+'.png','static/polls')
 
     # 6.save the info into the sqlite3
     express = Express(send_name=myName,send_phone=myPhone,send_address=myAddress,send_postcode=myPostcode,
