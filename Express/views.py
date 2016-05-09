@@ -38,13 +38,13 @@ def index(request):
 
     # 3.create Qrcode
     # Todo:optimize the code structure
-    q = qrcode.main.QRCode()
-    q.add_data(rcvName+'\n'+rcvPhone+'\n'+code)
-    q.make()
-    m = q.make_image()
+    # q = qrcode.main.QRCode()
+    # q.add_data(rcvName+'\n'+rcvPhone+'\n'+code)
+    # q.make()
+    # m = q.make_image()
 
     # 4.produce the picture
-    m.save('/home/projects/Expressbackend/static/polls/'+code+'.png')  #qrcode picture's name is 'code'
+    # m.save('/home/projects/Expressbackend/static/Express/'+code+'.png')  #qrcode picture's name is 'code'
 
     # 5.move it to the pointed directory
     # shutil.move(code+'.png','static/polls')
@@ -57,8 +57,8 @@ def index(request):
 
     # 7.create response
     # Todo:the url is hard-coded!
-    url = 'http://101.201.79.95/express/pic/?code='+code
-    response = {'code':code,'url':url}
+    # url = 'http://101.201.79.95/express/pic/?code='+code
+    response = {'code':code}
     return JsonResponse(response)
 
 def pic(request):
