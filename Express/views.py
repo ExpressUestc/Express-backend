@@ -44,7 +44,7 @@ def index(request):
     m = q.make_image()
 
     # 4.produce the picture
-    m.save('./static/polls/'+code+'.png')  #qrcode picture's name is 'code'
+    m.save('/home/projects/Expressbackend/static/polls/'+code+'.png')  #qrcode picture's name is 'code'
 
     # 5.move it to the pointed directory
     # shutil.move(code+'.png','static/polls')
@@ -57,7 +57,7 @@ def index(request):
 
     # 7.create response
     # Todo:the url is hard-coded!
-    url = 'http://localhost:8000/express/pic/?code='+code
+    url = 'http://101.201.79.95/express/pic/?code='+code
     response = {'code':code,'url':url}
     return JsonResponse(response)
 
