@@ -98,8 +98,11 @@ def distribute(request):
     rcvPhone = express.receive_phone
     # saving deliverPhone into database
     # Todo:the Chinese character in the message have bugs
-    deliverman = DeliverMan(express =express,deliverPhone=deliverPhone)
-    deliverman.save()
+    if express.deliverman is not None:
+        express.deliverman.delete()
+    else:
+        deliverman = DeliverMan(express =express,deliverPhone=deliverPhone)
+        deliverman.save()
     # send message to receiver and return the response
     response = sendmessage.distribute(rcvName,goods,rcvAddress,code,rcvPhone)
     return HttpResponse(response)
@@ -135,8 +138,9 @@ def getVerify(request):
         # saving verifycode into database
         if express.verifycode is not None:
             express.verifycode.delete()
-        verifycode = VerifyCode(express=express, verifycode=verifyCode, codedate=createDate)
-        verifycode.save()
+        else:
+            verifycode = VerifyCode(express=express, verifycode=verifyCode, codedate=createDate)
+            verifycode.save()
         feedback = '验证码已发送'
     except KeyError ,e:
         feedback = '请求过于频繁，请稍后再试'
