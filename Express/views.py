@@ -11,6 +11,7 @@ from django.shortcuts import render, render_to_response
 from Express.models import Express,DeliverMan,VerifyCode
 import sendmessage
 import datetime
+from django.db.models.query import *
 
 
 def test(request):
@@ -68,7 +69,14 @@ def pic(request):
 def sending(request):
     code = request.GET['code']
     pos = request.GET['pos']
-    express = Express.objects.get(code=code)
+
+    try:
+        express = Express.objects.get(code=code)
+    except Express.DoesNotExist,e:
+        feedback = '很抱歉，该快件ＩＤ不存在'
+        response = {'feedback':feedback}
+        return JsonResponse(response)
+
     express.pos = pos
     express.save()
     # Todo:add if else
@@ -81,7 +89,12 @@ def find(request):
     rcvPhone = request.GET['rcvPhone']
     code = request.GET['code']
     # using code to get the express object
-    express = Express.objects.get(code=code)
+    try:
+        express = Express.objects.get(code=code)
+    except Express.DoesNotExist, e:
+        feedback = '很抱歉，该快件ＩＤ不存在'
+        response = {'feedback': feedback}
+        return JsonResponse(response)
     # get position
     pos = express.pos
     response = {'pos':pos}
@@ -91,7 +104,12 @@ def distribute(request):
     code = request.GET['code']
     deliverPhone = request.GET['deliverPhone']
     # using code to get the express object
-    express = Express.objects.get(code=code)
+    try:
+        express = Express.objects.get(code=code)
+    except Express.DoesNotExist, e:
+        feedback = '很抱歉，该快件ＩＤ不存在'
+        response = {'feedback': feedback}
+        return JsonResponse(response)
     rcvName =  express.receive_name
     rcvAddress = express.receive_address
     goods = express.goods
@@ -111,7 +129,12 @@ def auth(request):
     flag = request.GET['flag']
     code = request.GET['code']
     # using code to get the express object
-    express = Express.objects.get(code=code)
+    try:
+        express = Express.objects.get(code=code)
+    except Express.DoesNotExist, e:
+        feedback = '很抱歉，该快件ＩＤ不存在'
+        response = {'feedback': feedback}
+        return JsonResponse(response)
     # if auth fails ,send warning message to the deliverman
     # Todo: response has a lot to consider
     if flag == '0':
@@ -123,7 +146,12 @@ def auth(request):
 def getVerify(request):
     code = request.GET['code']
 
-    express = Express.objects.get(code=code)
+    try:
+        express = Express.objects.get(code=code)
+    except Express.DoesNotExist, e:
+        feedback = '很抱歉，该快件ＩＤ不存在'
+        response = {'feedback': feedback}
+        return JsonResponse(response)
 
     rcvPhone = express.receive_phone
     verifyCode = (''.join(map(lambda xx: (hex(ord(xx))[2:]), os.urandom(16))))[0:6]
@@ -151,7 +179,12 @@ def getVerify(request):
 def authVerify(request):
     verify = request.GET['verify']
     code = request.GET['code']
-    express = Express.objects.get(code=code)
+    try:
+        express = Express.objects.get(code=code)
+    except Express.DoesNotExist, e:
+        feedback = '很抱歉，该快件ＩＤ不存在'
+        response = {'feedback': feedback}
+        return JsonResponse(response)
     # 1.during 3 minutes
     past =  int(express.verifycode.codedate)
     now = int(datetime.datetime.strftime(datetime.datetime.now(),'%Y%m%d%H%M%S'))
