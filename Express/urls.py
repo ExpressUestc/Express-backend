@@ -8,8 +8,8 @@ urlpatterns = [
     url(r'^sending/$',views.sending,name='sending'),
     url(r'^find/$',views.find,name='find'),
     url(r'^distribute/$',views.distribute,name='distribute'),
-    url(r'^firstauth/$',views.auth,name='auth'),
+    url(r'^auth/$',views.auth,name='auth'),
     url(r'^getVerify/$',views.getVerify,name='getVerify'),
-    url(r'^authVerify/$',views.auth,name='authVerify'),
+    url(r'^authVerify/$',views.authVerify,name='authVerify'),
     url(r'^test/$',views.test,name='test')
 ]

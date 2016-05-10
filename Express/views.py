@@ -116,15 +116,17 @@ def distribute(request):
     rcvPhone = express.receive_phone
     # saving deliverPhone into database
     # Todo:the Chinese character in the message have bugs
-    if express.deliverman is not None:
-        express.deliverman.delete()
-    deliverman = DeliverMan(express =express,deliverPhone=deliverPhone)
-    deliverman.save()
+    try:
+        express.deliverman.deliverPhone = deliverPhone
+        express.deliverman.save()
+    except DeliverMan.DoesNotExist,e:
+        deliverman = DeliverMan(express=express, deliverPhone=deliverPhone)
+        deliverman.save()
     # send message to receiver and return the response
     response = sendmessage.distribute(rcvName,goods,rcvAddress,code,rcvPhone)
     return HttpResponse(response)
 
-def firstauth(request):
+def auth(request):
     flag = request.GET['flag']
     code = request.GET['code']
     # using code to get the express object
@@ -136,10 +138,13 @@ def firstauth(request):
         return JsonResponse(response)
     # if auth fails ,send warning message to the deliverman
     # Todo: response has a lot to consider
-    if flag == '0':
-        response =  sendmessage.warn(code,express.deliverman.deliverPhone)
-    else:
-        response = None
+    try:
+        if flag == '0':
+            response =  sendmessage.warn(code,express.deliverman.deliverPhone)
+        else:
+            response = None
+    except DeliverMan.DoesNotExist,e:
+        response = '对不起，该快件没有对应的快递员'
     return HttpResponse(response)
 
 def getVerify(request):
@@ -163,13 +168,18 @@ def getVerify(request):
     try:
         createDate =  jsonResponse["resp"]["templateSMS"]["createDate"]
         # saving verifycode into database
-        if express.verifycode is not None:
-            express.verifycode.delete()
-        verifycode = VerifyCode(express=express, verifycode=verifyCode, codedate=createDate)
-        verifycode.save()
+
+        express.verifycode.verifycode = verifyCode
+        express.verifycode.codedate = createDate
+        express.verifycode.save()
+
         feedback = '验证码已发送'
     except KeyError ,e:
         feedback = '请求过于频繁，请稍后再试'
+    except VerifyCode.DoesNotExist,e:
+        verifycode = VerifyCode(express=express, verifycode=verifyCode, codedate=createDate)
+        verifycode.save()
+        feedback = '验证码已发送'
 
     response = {'feedback':feedback}
     return JsonResponse(response)
@@ -184,20 +194,26 @@ def authVerify(request):
         response = {'feedback': feedback}
         return JsonResponse(response)
     # 1.during 3 minutes
-    past =  int(express.verifycode.codedate)
-    now = int(datetime.datetime.strftime(datetime.datetime.now(),'%Y%m%d%H%M%S'))
-    timePeriod = now-past
-    feedback = '验证失败'
-    if timePeriod<300:
-        # 2.verifycode must be the same and the code should be used only once
-        if verify == express.verifycode.verifycode and express.verifycode.codestatus==False :
-            feedback = '验证成功'
-            sendmessage.succeedVerify(code=code,deliverPhone=express.deliverman.deliverPhone)
-            express.verifycode.codestatus = True
-            express.verifycode.save()
-    else:
-        sendmessage.warn(code=code,deliverPhone=express.deliverman.deliverPhone)
+    try:
+        past = int(express.verifycode.codedate)
+        now = int(datetime.datetime.strftime(datetime.datetime.now(), '%Y%m%d%H%M%S'))
+        timePeriod = now - past
+        feedback = '验证失败'
+        if timePeriod < 300:
+            # 2.verifycode must be the same and the code should be used only once
+            if verify == express.verifycode.verifycode and express.verifycode.codestatus == False:
+                feedback = '验证成功'
+                sendmessage.succeedVerify(code=code, deliverPhone=express.deliverman.deliverPhone)
+                express.verifycode.codestatus = True
+                express.verifycode.save()
+        else:
+            sendmessage.warn(code=code, deliverPhone=express.deliverman.deliverPhone)
+    except VerifyCode.DoesNotExist,e:
+        feedback = '很抱歉，数据库没有该快件的验证码，无法进行验证'
+    except DeliverMan.DoesNotExist,e:
+        feedback = '对不起，该快件没有对应的快递员'
+
 
     response = {'feedback':feedback}
 
-    return HttpResponse(response)
+    return JsonResponse(response)
