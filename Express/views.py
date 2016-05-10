@@ -124,7 +124,7 @@ def distribute(request):
     response = sendmessage.distribute(rcvName,goods,rcvAddress,code,rcvPhone)
     return HttpResponse(response)
 
-def auth(request):
+def firstauth(request):
     flag = request.GET['flag']
     code = request.GET['code']
     # using code to get the express object
