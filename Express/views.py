@@ -2,6 +2,7 @@
 import json
 import os
 import shutil
+from Crypto.PublicKey import RSA
 
 import qrcode
 from django.http import JsonResponse
@@ -12,33 +13,42 @@ from Express.models import Express,DeliverMan,VerifyCode
 import sendmessage
 import datetime
 from django.db.models.query import *
-
+from Crypto.Cipher import PKCS1_v1_5 as Cipher_pkcs1_v1_5
+import base64
+from Crypto import Random
 
 def test(request):
     return HttpResponse('This is test')
 
 # Create your views here.
 def index(request):
+
+    with open('private.pem') as f:
+        key = f.read()
+        rsakey = RSA.importKey(key)
+        cipher = Cipher_pkcs1_v1_5.new(rsakey)
+        message = cipher.decrypt(base64.b64decode(request.GET['ciphertext']), Random.new().read)
+
+    dictMessage =  json.loads(message)
+
     # 1.get info from the request
-    if request.method == 'GET':
-        myName =  request.GET['myName']
-        myPhone = request.GET['myPhone']
-        myAddress = request.GET['myAddress']
-        myPostcode = request.GET['myPostcode']
-        extraPrice = request.GET['extraPrice']
-        rcvName = request.GET['rcvName']
-        rcvPhone = request.GET['rcvPhone']
-        rcvAddress = request.GET['rcvAddress']
-        rcvPostcode = request.GET['rcvPostcode']
-        goods = request.GET['goods']
-        expressCompany = request.GET['expressCompany']
-        remarks = request.GET['remarks']
+    myName =  dictMessage['myName']
+    myPhone = dictMessage['myPhone']
+    myAddress = dictMessage['myAddress']
+    myPostcode = dictMessage['myPostcode']
+    extraPrice = dictMessage['extraPrice']
+    rcvName = dictMessage['rcvName']
+    rcvPhone = dictMessage['rcvPhone']
+    rcvAddress = dictMessage['rcvAddress']
+    rcvPostcode = dictMessage['rcvPostcode']
+    goods = dictMessage['goods']
+    expressCompany = dictMessage['expressCompany']
+    remarks = dictMessage['remarks']
 
     # 2.create random string with 10 characters
     code = (''.join(map(lambda xx: (hex(ord(xx))[2:]), os.urandom(16))))[0:10]
 
     # 3.create Qrcode
-    # Todo:optimize the code structure
     # q = qrcode.main.QRCode()
     # q.add_data(rcvName+'\n'+rcvPhone+'\n'+code)
     # q.make()
@@ -51,6 +61,8 @@ def index(request):
     # shutil.move(code+'.png','static/polls')
 
     # 6.save the info into the sqlite3
+    # Todo:transform the code
+    # Todo:encrypt info in db
     express = Express(send_name=myName,send_phone=myPhone,send_address=myAddress,send_postcode=myPostcode,
                     extra_price=extraPrice,receive_name=rcvName,receive_phone=rcvPhone,receive_address=rcvAddress,receive_postcode=rcvPostcode,goods=goods,express_company=expressCompany,remarks=remarks,
                     code=code)
@@ -67,35 +79,67 @@ def pic(request):
     return render_to_response('Express/showQrcode.html',{'image':code+'.png'})
 
 def sending(request):
-    code = request.GET['code']
-    pos = request.GET['pos']
+    # 1.decrypt the message
+    with open('private.pem') as f:
+        key = f.read()
+        rsakey = RSA.importKey(key)
+        cipher = Cipher_pkcs1_v1_5.new(rsakey)
+        message = cipher.decrypt(base64.b64decode(request.GET['ciphertext']), Random.new().read)
 
+    dictMessage = json.loads(message)
+    # 2.get info
+    code = dictMessage['code']
+    pos = dictMessage['pos']
+    deliverPhone =  dictMessage['deliverPhone']
+    # 3.get express
     try:
         express = Express.objects.get(code=code)
     except Express.DoesNotExist,e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback':feedback}
         return JsonResponse(response)
-
+    # 4.save deliverPhone
+    try:
+        express.deliverman.deliverPhone = deliverPhone
+        express.deliverman.save()
+    except DeliverMan.DoesNotExist, e:
+        deliverman = DeliverMan(express=express, deliverPhone=deliverPhone)
+        deliverman.save()
+    # 5.save pos
     express.pos = pos
     express.save()
     # Todo:add if else
+    # 6.create response
     feedback = '位置已上传'
     response = {'feedback':feedback}
     return JsonResponse(response)
 
 def find(request):
-    rcvName = request.GET['rcvName']
-    rcvPhone = request.GET['rcvPhone']
-    code = request.GET['code']
-    # using code to get the express object
+    # 1.decrypt the message
+    with open('private.pem') as f:
+        key = f.read()
+        rsakey = RSA.importKey(key)
+        cipher = Cipher_pkcs1_v1_5.new(rsakey)
+        message = cipher.decrypt(base64.b64decode(request.GET['ciphertext']), Random.new().read)
+
+    dictMessage = json.loads(message)
+    # 2.get info
+    rcvName = dictMessage['rcvName']
+    rcvPhone = dictMessage['rcvPhone']
+    code = dictMessage['code']
+    # 3.get express
     try:
         express = Express.objects.get(code=code)
     except Express.DoesNotExist, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
         return JsonResponse(response)
-    # get position
+    # 4.check info
+    if (express.receive_name != rcvName) or (express.receive_phone != rcvPhone):
+        feedback = '对不起，您的信息有误'
+        response = {'feedback': feedback}
+        return JsonResponse(response)
+    # 5. get pos
     pos = express.pos
     response = {'pos':pos}
     return JsonResponse(response)
@@ -163,10 +207,10 @@ def getVerify(request):
     # send message
     response = sendmessage.getVerify(verifyCode=verifyCode,rcvPhone=rcvPhone)
 
-    jsonResponse = json.loads(response)
+    dictResponse = json.loads(response)
     # Todo:if send 10 or more messages there'll be an exception
     try:
-        createDate =  jsonResponse["resp"]["templateSMS"]["createDate"]
+        createDate =  dictResponse["resp"]["templateSMS"]["createDate"]
         # saving verifycode into database
 
         express.verifycode.verifycode = verifyCode

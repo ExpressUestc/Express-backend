@@ -1,11 +1,14 @@
 # coding:utf8
 import base64
+import json
 from Crypto import Random
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5 as Cipher_pkcs1_v1_5
 
-message = '任远航 18161251970 cbawqfqwd1'
+message = '{"name":"任远航","age":"20","phone":"18161251991"}'
 # message = 'hello ghost, this is a plian text'
+dictMessage = json.loads(message)
+print dictMessage
 with open('public.pem') as f:
     key = f.read()
     rsakey = RSA.importKey(key)
@@ -19,3 +22,5 @@ with open('private.pem') as f:
     cipher = Cipher_pkcs1_v1_5.new(rsakey)
     text = cipher.decrypt(base64.b64decode(cipher_text), Random.new().read)
     print text
+text = json.loads(text)
+print text['name']
