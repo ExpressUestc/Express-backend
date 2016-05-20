@@ -9,13 +9,11 @@ from django.http import JsonResponse
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import render, render_to_response
-from Express.models import Express,DeliverMan,VerifyCode
+from Express.models import Express,DeliverMan,VerifyCode,AuthDeliver
 import sendmessage
 import datetime
 from django.db.models.query import *
-from Crypto.Cipher import PKCS1_v1_5 as Cipher_pkcs1_v1_5
-import base64
-from Crypto import Random
+import decrypt
 
 def test(request):
     return HttpResponse('This is test')
@@ -23,11 +21,7 @@ def test(request):
 # Create your views here.
 def index(request):
 
-    with open('private.pem') as f:
-        key = f.read()
-        rsakey = RSA.importKey(key)
-        cipher = Cipher_pkcs1_v1_5.new(rsakey)
-        message = cipher.decrypt(base64.b64decode(request.GET['ciphertext']), Random.new().read)
+    message = decrypt.decryptMessage(request.GET['ciphertext'])
 
     dictMessage =  json.loads(message)
 
@@ -69,7 +63,6 @@ def index(request):
     express.save()
 
     # 7.create response
-    # Todo:the url is hard-coded!
     # url = 'http://101.201.79.95/express/pic/?code='+code
     response = {'code':code}
     return JsonResponse(response)
@@ -78,22 +71,40 @@ def pic(request):
     code = request.GET['code']
     return render_to_response('Express/showQrcode.html',{'image':code+'.png'})
 
+def authDeliver(request):
+    message = decrypt.decryptMessage(request.GET['ciphertext'])
+    dictMessage = json.loads(message)
+
+    deliverPhone = dictMessage['deliverPhone']
+    deliverID = dictMessage['deliverID']
+
+    flag = 1
+    try:
+        deliverman = AuthDeliver.objects.get(deliverPhone=deliverPhone,deliverID=deliverID)
+    except AuthDeliver.DoesNotExist,e:
+        flag = 0
+
+    response = {'flag':flag}
+
+    return JsonResponse(response)
+
 def sending(request):
     # 1.decrypt the message
-    with open('private.pem') as f:
-        key = f.read()
-        rsakey = RSA.importKey(key)
-        cipher = Cipher_pkcs1_v1_5.new(rsakey)
-        message = cipher.decrypt(base64.b64decode(request.GET['ciphertext']), Random.new().read)
+    message = decrypt.decryptMessage(request.GET['ciphertext'])
 
     dictMessage = json.loads(message)
     # 2.get info
-    code = dictMessage['code']
+    encryptmessage = dictMessage['message']
     pos = dictMessage['pos']
     deliverPhone =  dictMessage['deliverPhone']
+    deliverID = dictMessage['deliverID']
+
+    # get decryptmessage
+    decryptmessage = decrypt.decryptMessage(encryptmessage)
+
     # 3.get express
     try:
-        express = Express.objects.get(code=code)
+        express = Express.objects.get(code=decryptmessage['code'])
     except Express.DoesNotExist,e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback':feedback}
@@ -101,9 +112,10 @@ def sending(request):
     # 4.save deliverPhone
     try:
         express.deliverman.deliverPhone = deliverPhone
+        express.deliverman.deliverID = deliverID
         express.deliverman.save()
     except DeliverMan.DoesNotExist, e:
-        deliverman = DeliverMan(express=express, deliverPhone=deliverPhone)
+        deliverman = DeliverMan(express=express, deliverPhone=deliverPhone,deliverID=deliverID)
         deliverman.save()
     # 5.save pos
     express.pos = pos
@@ -116,11 +128,7 @@ def sending(request):
 
 def find(request):
     # 1.decrypt the message
-    with open('private.pem') as f:
-        key = f.read()
-        rsakey = RSA.importKey(key)
-        cipher = Cipher_pkcs1_v1_5.new(rsakey)
-        message = cipher.decrypt(base64.b64decode(request.GET['ciphertext']), Random.new().read)
+    message = decrypt.decryptMessage(request.GET['ciphertext'])
 
     dictMessage = json.loads(message)
     # 2.get info
@@ -145,11 +153,16 @@ def find(request):
     return JsonResponse(response)
 
 def distribute(request):
-    code = request.GET['code']
-    deliverPhone = request.GET['deliverPhone']
+    message = decrypt.decryptMessage(request.GET['ciphertext'])
+    dictMessage = json.loads(message)
+    encryptmessage = dictMessage['message']
+    deliverPhone = dictMessage['deliverPhone']
+    deliverID = dictMessage['deliverID']
+
+    decryptmessage = decrypt.decryptMessage(encryptmessage)
     # using code to get the express object
     try:
-        express = Express.objects.get(code=code)
+        express = Express.objects.get(code=decryptmessage['code'])
     except Express.DoesNotExist, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
@@ -162,17 +175,22 @@ def distribute(request):
     # Todo:the Chinese character in the message have bugs
     try:
         express.deliverman.deliverPhone = deliverPhone
+        express.deliverman.deliverID = deliverID
         express.deliverman.save()
     except DeliverMan.DoesNotExist,e:
         deliverman = DeliverMan(express=express, deliverPhone=deliverPhone)
         deliverman.save()
     # send message to receiver and return the response
-    response = sendmessage.distribute(rcvName,goods,rcvAddress,code,rcvPhone)
+    response = sendmessage.distribute(rcvName,goods,rcvAddress,decryptmessage['code'],rcvPhone,deliverPhone)
     return HttpResponse(response)
 
 def auth(request):
-    flag = request.GET['flag']
-    code = request.GET['code']
+    message = decrypt.decryptMessage(request.GET['ciphertext'])
+    dictMessage = json.loads(message)
+    encryptmessage = dictMessage['message']
+    rcvPhone = dictMessage['rcvPhone']
+    decryptmessage = decrypt.decryptMessage(encryptmessage)
+    code = decryptmessage['code']
     # using code to get the express object
     try:
         express = Express.objects.get(code=code)
@@ -182,17 +200,25 @@ def auth(request):
         return JsonResponse(response)
     # if auth fails ,send warning message to the deliverman
     # Todo: response has a lot to consider
+
+    flag = 1
     try:
-        if flag == '0':
-            response =  sendmessage.warn(code,express.deliverman.deliverPhone)
+        if express.receive_phone != rcvPhone:
+            sendmessage.warn(code, express.deliverman.deliverPhone)
+            flag = 0
+            response = '抱歉，手机号验证失败'
         else:
-            response = None
+            response = '恭喜，手机号验证成功，稍后我们会给您发送一条验证码，请耐心等待'
     except DeliverMan.DoesNotExist,e:
         response = '对不起，该快件没有对应的快递员'
-    return HttpResponse(response)
+
+    jsonResponse = {'flag':flag,'response':response}
+    return JsonResponse(jsonResponse)
 
 def getVerify(request):
-    code = request.GET['code']
+    message = decrypt.decryptMessage(request.GET['message'])
+    dictMessage = json.loads(message)
+    code = dictMessage['code']
 
     try:
         express = Express.objects.get(code=code)
@@ -229,8 +255,16 @@ def getVerify(request):
     return JsonResponse(response)
 
 def authVerify(request):
-    verify = request.GET['verify']
-    code = request.GET['code']
+    message = decrypt.decryptMessage(request.GET['ciphertext'])
+
+    dictMessage = json.loads(message)
+    verify = dictMessage['verify']
+    encryptmessage = dictMessage['message']
+
+    decryptmessage = decrypt.decryptMessage(encryptmessage)
+
+    code = decryptmessage['code']
+
     try:
         express = Express.objects.get(code=code)
     except Express.DoesNotExist, e:

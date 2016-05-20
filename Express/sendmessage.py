@@ -417,7 +417,7 @@ class RestAPI:
 		req = urllib2.Request(url)
 		return urlOpen(createHttpReq(req,url,accountSid,timestamp,responseMode,body))
 
-def distribute(rcvName,goods,rcvAddress,code,rcvPhone):
+def distribute(rcvName,goods,rcvAddress,code,rcvPhone,deliverPhone):
 	test = RestAPI()
 
 	accountSid = "33794bdc8d67381a8b15525d34e71497"
@@ -432,7 +432,7 @@ def distribute(rcvName,goods,rcvAddress,code,rcvPhone):
 
 	templateId="23442"
 
-	param=rcvName+','+code+','+goods+','+rcvAddress
+	param=rcvName+','+code+','+goods+','+rcvAddress+','+deliverPhone
     # param="ryh,336,气球,电子科大"
 
 	#短信

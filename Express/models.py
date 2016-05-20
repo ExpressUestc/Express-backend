@@ -29,6 +29,7 @@ class Express(models.Model):
 class DeliverMan(models.Model):
     express = models.OneToOneField(Express,on_delete=models.CASCADE)
     deliverPhone = models.CharField(max_length=20)
+    deliverID = models.CharField(max_length=20)
 
     def __str__(self):
         return "deliverman's phone is %s" % self.deliverPhone
@@ -39,3 +40,7 @@ class VerifyCode(models.Model):
     verifycode = models.CharField(max_length=10)
     codestatus = models.BooleanField(default=False)
     codedate = models.CharField(max_length=20)
+
+class AuthDeliver(models.Model):
+    deliverPhone = models.CharField(max_length=20)
+    deliverID = models.CharField(max_length=20)
