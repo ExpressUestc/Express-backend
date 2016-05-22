@@ -101,10 +101,13 @@ def sending(request):
 
     # get decryptmessage
     decryptmessage = decrypt.decryptMessage(encryptmessage)
+	decryptmessage = json.loads(decryptmessage)
+
+    code = decryptmessage['code']
 
     # 3.get express
     try:
-        express = Express.objects.get(code=decryptmessage['code'])
+        express = Express.objects.get(code=code)
     except Express.DoesNotExist,e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback':feedback}
@@ -160,9 +163,12 @@ def distribute(request):
     deliverID = dictMessage['deliverID']
 
     decryptmessage = decrypt.decryptMessage(encryptmessage)
+    decryptmessage = json.loads(decryptmessage)
     # using code to get the express object
+
+    code = decryptmessage['code']
     try:
-        express = Express.objects.get(code=decryptmessage['code'])
+        express = Express.objects.get(code=code)
     except Express.DoesNotExist, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
@@ -181,8 +187,10 @@ def distribute(request):
         deliverman = DeliverMan(express=express, deliverPhone=deliverPhone)
         deliverman.save()
     # send message to receiver and return the response
-    response = sendmessage.distribute(rcvName,goods,rcvAddress,decryptmessage['code'],rcvPhone,deliverPhone)
-    return HttpResponse(response)
+    sendmessage.distribute(rcvName,goods,rcvAddress,code,rcvPhone,deliverPhone)
+    feedback = '短信发送成功'
+    response = {'feedback': feedback}
+    return JsonResponse(response)
 
 def auth(request):
     message = decrypt.decryptMessage(request.GET['ciphertext'])
@@ -190,6 +198,7 @@ def auth(request):
     encryptmessage = dictMessage['message']
     rcvPhone = dictMessage['rcvPhone']
     decryptmessage = decrypt.decryptMessage(encryptmessage)
+    decryptmessage = json.loads(decryptmessage)
     code = decryptmessage['code']
     # using code to get the express object
     try:
@@ -262,7 +271,7 @@ def authVerify(request):
     encryptmessage = dictMessage['message']
 
     decryptmessage = decrypt.decryptMessage(encryptmessage)
-
+    decryptmessage = json.loads(decryptmessage)
     code = decryptmessage['code']
 
     try:
