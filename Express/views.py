@@ -21,23 +21,20 @@ def test(request):
 # Create your views here.
 def index(request):
 
-    message = decrypt.decryptMessage(request.GET['ciphertext'])
-
-    dictMessage =  json.loads(message)
 
     # 1.get info from the request
-    myName =  dictMessage['myName']
-    myPhone = dictMessage['myPhone']
-    myAddress = dictMessage['myAddress']
-    myPostcode = dictMessage['myPostcode']
-    extraPrice = dictMessage['extraPrice']
-    rcvName = dictMessage['rcvName']
-    rcvPhone = dictMessage['rcvPhone']
-    rcvAddress = dictMessage['rcvAddress']
-    rcvPostcode = dictMessage['rcvPostcode']
-    goods = dictMessage['goods']
-    expressCompany = dictMessage['expressCompany']
-    remarks = dictMessage['remarks']
+    myName =  decrypt.decryptMessage(request.GET['myName'])
+    myPhone = decrypt.decryptMessage(request.GET['myPhone'])
+    myAddress = decrypt.decryptMessage(request.GET['myAddress'])
+    myPostcode = decrypt.decryptMessage(request.GET['myPostcode'])
+    extraPrice = decrypt.decryptMessage(request.GET['extraPrice'])
+    rcvName = decrypt.decryptMessage(request.GET['rcvName'])
+    rcvPhone = decrypt.decryptMessage(request.GET['rcvPhone'])
+    rcvAddress = decrypt.decryptMessage(request.GET['rcvAddress'])
+    rcvPostcode = decrypt.decryptMessage(request.GET['rcvPostcode'])
+    goods = decrypt.decryptMessage(request.GET['goods'])
+    expressCompany = decrypt.decryptMessage(request.GET['expressCompany'])
+    remarks = decrypt.decryptMessage(request.GET['remarks'])
 
     # 2.create random string with 10 characters
     code = (''.join(map(lambda xx: (hex(ord(xx))[2:]), os.urandom(16))))[0:10]
@@ -72,11 +69,9 @@ def pic(request):
     return render_to_response('Express/showQrcode.html',{'image':code+'.png'})
 
 def authDeliver(request):
-    message = decrypt.decryptMessage(request.GET['ciphertext'])
-    dictMessage = json.loads(message)
 
-    deliverPhone = dictMessage['deliverPhone']
-    deliverID = dictMessage['deliverID']
+    deliverPhone = decrypt.decryptMessage(request.GET['deliverPhone'])
+    deliverID = decrypt.decryptMessage(request.GET['deliverID'])
 
     flag = 1
     try:
@@ -89,21 +84,18 @@ def authDeliver(request):
     return JsonResponse(response)
 
 def sending(request):
-    # 1.decrypt the message
-    message = decrypt.decryptMessage(request.GET['ciphertext'])
 
-    dictMessage = json.loads(message)
     # 2.get info
-    encryptmessage = dictMessage['message']
-    pos = dictMessage['pos']
-    deliverPhone =  dictMessage['deliverPhone']
-    deliverID = dictMessage['deliverID']
+    decryptmessage = decrypt.decryptMessage(request.GET['message'])
+    pos = decrypt.decryptMessage(request.GET['pos'])
+    deliverPhone =  decrypt.decryptMessage(request.GET['deliverPhone'])
+    deliverID = decrypt.decryptMessage(request.GET['deliverID'])
 
     # get decryptmessage
-    decryptmessage = decrypt.decryptMessage(encryptmessage)
-    decryptmessage = json.loads(decryptmessage)
+    # decryptmessage = decrypt.decryptMessage(encryptmessage)
+    dictdecryptmessage = json.loads(decryptmessage)
 
-    code = decryptmessage['code']
+    code = dictdecryptmessage['code']
 
     # 3.get express
     try:
@@ -131,13 +123,13 @@ def sending(request):
 
 def find(request):
     # 1.decrypt the message
-    message = decrypt.decryptMessage(request.GET['ciphertext'])
+    # message = decrypt.decryptMessage(request.GET['ciphertext'])
 
-    dictMessage = json.loads(message)
+    # dictMessage = json.loads(message)
     # 2.get info
-    rcvName = dictMessage['rcvName']
-    rcvPhone = dictMessage['rcvPhone']
-    code = dictMessage['code']
+    rcvName = decrypt.decryptMessage(request.GET['rcvName'])
+    rcvPhone = decrypt.decryptMessage(request.GET['rcvPhone'])
+    code = decrypt.decryptMessage(request.GET['code'])
     # 3.get express
     try:
         express = Express.objects.get(code=code)
@@ -156,17 +148,17 @@ def find(request):
     return JsonResponse(response)
 
 def distribute(request):
-    message = decrypt.decryptMessage(request.GET['ciphertext'])
-    dictMessage = json.loads(message)
-    encryptmessage = dictMessage['message']
-    deliverPhone = dictMessage['deliverPhone']
-    deliverID = dictMessage['deliverID']
+    # message = decrypt.decryptMessage(request.GET['ciphertext'])
+    # dictMessage = json.loads(message)
+    decryptmessage = decrypt.decryptMessage(request.GET['message'])
+    deliverPhone = decrypt.decryptMessage(request.GET['deliverPhone'])
+    deliverID = decrypt.decryptMessage(request.GET['deliverID'])
 
-    decryptmessage = decrypt.decryptMessage(encryptmessage)
-    decryptmessage = json.loads(decryptmessage)
+    # decryptmessage = decrypt.decryptMessage(encryptmessage)
+    dictdecryptmessage = json.loads(decryptmessage)
     # using code to get the express object
 
-    code = decryptmessage['code']
+    code = dictdecryptmessage['code']
     try:
         express = Express.objects.get(code=code)
     except Express.DoesNotExist, e:
@@ -193,13 +185,11 @@ def distribute(request):
     return JsonResponse(response)
 
 def auth(request):
-    message = decrypt.decryptMessage(request.GET['ciphertext'])
-    dictMessage = json.loads(message)
-    encryptmessage = dictMessage['message']
-    rcvPhone = dictMessage['rcvPhone']
-    decryptmessage = decrypt.decryptMessage(encryptmessage)
-    decryptmessage = json.loads(decryptmessage)
-    code = decryptmessage['code']
+
+    decryptmessage = decrypt.decryptMessage(request.GET['message'])
+    rcvPhone = decrypt.decryptMessage(request.GET['rcvPhone'])
+    dictdecryptmessage = json.loads(decryptmessage)
+    code = dictdecryptmessage['code']
     # using code to get the express object
     try:
         express = Express.objects.get(code=code)
@@ -225,9 +215,9 @@ def auth(request):
     return JsonResponse(jsonResponse)
 
 def getVerify(request):
-    message = decrypt.decryptMessage(request.GET['message'])
-    dictMessage = json.loads(message)
-    code = dictMessage['code']
+    decryptmessage = decrypt.decryptMessage(request.GET['message'])
+    dictdecryptMessage = json.loads(decryptmessage)
+    code = dictdecryptMessage['code']
 
     try:
         express = Express.objects.get(code=code)
@@ -264,15 +254,13 @@ def getVerify(request):
     return JsonResponse(response)
 
 def authVerify(request):
-    message = decrypt.decryptMessage(request.GET['ciphertext'])
 
-    dictMessage = json.loads(message)
-    verify = dictMessage['verify']
-    encryptmessage = dictMessage['message']
+    verify = decrypt.decryptMessage(request.GET['verify'])
+    decryptmessage = decrypt.decryptMessage(request.GET['message'])
 
-    decryptmessage = decrypt.decryptMessage(encryptmessage)
-    decryptmessage = json.loads(decryptmessage)
-    code = decryptmessage['code']
+    # decryptmessage = decrypt.decryptMessage(encryptmessage)
+    dictdecryptmessage = json.loads(decryptmessage)
+    code = dictdecryptmessage['code']
 
     try:
         express = Express.objects.get(code=code)
