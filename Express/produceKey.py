@@ -1,7 +1,7 @@
 from Crypto import Random
 from Crypto.PublicKey import RSA
 rng = Random.new().read
-rsa = RSA.generate(1024,rng)
+rsa = RSA.generate(2048,rng)
 
 private_pem = rsa.exportKey()
 with open('private.pem', 'w') as f:
