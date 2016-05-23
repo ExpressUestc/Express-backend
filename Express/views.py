@@ -14,27 +14,28 @@ import sendmessage
 import datetime
 from django.db.models.query import *
 import decrypt
+from django.views.decorators.csrf import csrf_exempt
 
 def test(request):
     return HttpResponse('This is test')
 
 # Create your views here.
+@csrf_exempt
 def index(request):
 
-
     # 1.get info from the request
-    myName =  decrypt.decryptMessage(request.GET['myName'])
-    myPhone = decrypt.decryptMessage(request.GET['myPhone'])
-    myAddress = decrypt.decryptMessage(request.GET['myAddress'])
-    myPostcode = decrypt.decryptMessage(request.GET['myPostcode'])
-    extraPrice = decrypt.decryptMessage(request.GET['extraPrice'])
-    rcvName = decrypt.decryptMessage(request.GET['rcvName'])
-    rcvPhone = decrypt.decryptMessage(request.GET['rcvPhone'])
-    rcvAddress = decrypt.decryptMessage(request.GET['rcvAddress'])
-    rcvPostcode = decrypt.decryptMessage(request.GET['rcvPostcode'])
-    goods = decrypt.decryptMessage(request.GET['goods'])
-    expressCompany = decrypt.decryptMessage(request.GET['expressCompany'])
-    remarks = decrypt.decryptMessage(request.GET['remarks'])
+    myName =  decrypt.decryptMessage(request.POST['myName'])
+    myPhone = decrypt.decryptMessage(request.POST['myPhone'])
+    myAddress = decrypt.decryptMessage(request.POST['myAddress'])
+    myPostcode = decrypt.decryptMessage(request.POST['myPostcode'])
+    extraPrice = decrypt.decryptMessage(request.POST['extraPrice'])
+    rcvName = decrypt.decryptMessage(request.POST['rcvName'])
+    rcvPhone = decrypt.decryptMessage(request.POST['rcvPhone'])
+    rcvAddress = decrypt.decryptMessage(request.POST['rcvAddress'])
+    rcvPostcode = decrypt.decryptMessage(request.POST['rcvPostcode'])
+    goods = decrypt.decryptMessage(request.POST['goods'])
+    expressCompany = decrypt.decryptMessage(request.POST['expressCompany'])
+    remarks = decrypt.decryptMessage(request.POST['remarks'])
 
     # 2.create random string with 10 characters
     code = (''.join(map(lambda xx: (hex(ord(xx))[2:]), os.urandom(16))))[0:10]
@@ -68,14 +69,15 @@ def pic(request):
     code = request.GET['code']
     return render_to_response('Express/showQrcode.html',{'image':code+'.png'})
 
+@csrf_exempt
 def authDeliver(request):
 
-    deliverPhone = decrypt.decryptMessage(request.GET['deliverPhone'])
-    deliverID = decrypt.decryptMessage(request.GET['deliverID'])
-
+    deliverPhone = decrypt.decryptMessage(request.POST['deliverPhone'])
+    deliverID = decrypt.decryptMessage(request.POST['deliverID'])
+    
     flag = 1
     try:
-        deliverman = AuthDeliver.objects.get(deliverPhone=deliverPhone,deliverID=deliverID)
+        deliverman = AuthDeliver.objects.get(deliverPhone=deliverPhone,deliverID=str(int(deliverID)))
     except AuthDeliver.DoesNotExist,e:
         flag = 0
 
@@ -83,13 +85,14 @@ def authDeliver(request):
 
     return JsonResponse(response)
 
+@csrf_exempt
 def sending(request):
 
     # 2.get info
-    decryptmessage = decrypt.decryptMessage(request.GET['message'])
-    pos = decrypt.decryptMessage(request.GET['pos'])
-    deliverPhone =  decrypt.decryptMessage(request.GET['deliverPhone'])
-    deliverID = decrypt.decryptMessage(request.GET['deliverID'])
+    decryptmessage = decrypt.decryptMessage(request.POST['message'])
+    pos = decrypt.decryptMessage(request.POST['pos'])
+    deliverPhone =  decrypt.decryptMessage(request.POST['deliverPhone'])
+    deliverID = decrypt.decryptMessage(request.POST['deliverID'])
 
     # get decryptmessage
     # decryptmessage = decrypt.decryptMessage(encryptmessage)
@@ -121,15 +124,16 @@ def sending(request):
     response = {'feedback':feedback}
     return JsonResponse(response)
 
+@csrf_exempt
 def find(request):
     # 1.decrypt the message
     # message = decrypt.decryptMessage(request.GET['ciphertext'])
 
     # dictMessage = json.loads(message)
     # 2.get info
-    rcvName = decrypt.decryptMessage(request.GET['rcvName'])
-    rcvPhone = decrypt.decryptMessage(request.GET['rcvPhone'])
-    code = decrypt.decryptMessage(request.GET['code'])
+    rcvName = decrypt.decryptMessage(request.POST['rcvName'])
+    rcvPhone = decrypt.decryptMessage(request.POST['rcvPhone'])
+    code = decrypt.decryptMessage(request.POST['code'])
     # 3.get express
     try:
         express = Express.objects.get(code=code)
@@ -147,12 +151,13 @@ def find(request):
     response = {'pos':pos}
     return JsonResponse(response)
 
+@csrf_exempt
 def distribute(request):
     # message = decrypt.decryptMessage(request.GET['ciphertext'])
     # dictMessage = json.loads(message)
-    decryptmessage = decrypt.decryptMessage(request.GET['message'])
-    deliverPhone = decrypt.decryptMessage(request.GET['deliverPhone'])
-    deliverID = decrypt.decryptMessage(request.GET['deliverID'])
+    decryptmessage = decrypt.decryptMessage(request.POST['message'])
+    deliverPhone = decrypt.decryptMessage(request.POST['deliverPhone'])
+    deliverID = decrypt.decryptMessage(request.POST['deliverID'])
 
     # decryptmessage = decrypt.decryptMessage(encryptmessage)
     dictdecryptmessage = json.loads(decryptmessage)
@@ -184,10 +189,11 @@ def distribute(request):
     response = {'feedback': feedback}
     return JsonResponse(response)
 
+@csrf_exempt
 def auth(request):
 
-    decryptmessage = decrypt.decryptMessage(request.GET['message'])
-    rcvPhone = decrypt.decryptMessage(request.GET['rcvPhone'])
+    decryptmessage = decrypt.decryptMessage(request.POST['message'])
+    rcvPhone = decrypt.decryptMessage(request.POST['rcvPhone'])
     dictdecryptmessage = json.loads(decryptmessage)
     code = dictdecryptmessage['code']
     # using code to get the express object
@@ -214,8 +220,9 @@ def auth(request):
     jsonResponse = {'flag':flag,'response':response}
     return JsonResponse(jsonResponse)
 
+@csrf_exempt
 def getVerify(request):
-    decryptmessage = decrypt.decryptMessage(request.GET['message'])
+    decryptmessage = decrypt.decryptMessage(request.POST['message'])
     dictdecryptMessage = json.loads(decryptmessage)
     code = dictdecryptMessage['code']
 
@@ -253,10 +260,11 @@ def getVerify(request):
     response = {'feedback':feedback}
     return JsonResponse(response)
 
+@csrf_exempt
 def authVerify(request):
 
-    verify = decrypt.decryptMessage(request.GET['verify'])
-    decryptmessage = decrypt.decryptMessage(request.GET['message'])
+    verify = decrypt.decryptMessage(request.POST['verify'])
+    decryptmessage = decrypt.decryptMessage(request.POST['message'])
 
     # decryptmessage = decrypt.decryptMessage(encryptmessage)
     dictdecryptmessage = json.loads(decryptmessage)
