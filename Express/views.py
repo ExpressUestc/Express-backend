@@ -142,10 +142,11 @@ def find(request):
         response = {'feedback': feedback}
         return JsonResponse(response)
     # 4.check info
-    if (express.receive_name != rcvName) or (express.receive_phone != rcvPhone):
+    if express.receive_phone != rcvPhone or express.receive_name.encode("utf-8") != rcvName:
         feedback = '对不起，您的信息有误'
         response = {'feedback': feedback}
-        return JsonResponse(response)
+	#response = {'rcvName':rcvName,'rcvPhone':rcvPhone,'receive_name':express.receive_name,'receive_phone':express.receive_phone}
+	return JsonResponse(response)
     # 5. get pos
     pos = express.pos
     response = {'pos':pos}
