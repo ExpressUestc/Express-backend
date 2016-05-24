@@ -16,6 +16,11 @@ from django.db.models.query import *
 import decrypt
 from django.views.decorators.csrf import csrf_exempt
 
+import sys
+reload(sys)
+
+sys.setdefaultencoding('utf8')
+
 def test(request):
     return HttpResponse('This is test')
 
