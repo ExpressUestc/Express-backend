@@ -15,7 +15,6 @@ import datetime
 from django.db.models.query import *
 import decrypt
 from django.views.decorators.csrf import csrf_exempt
-
 import sys
 reload(sys)
 
@@ -76,7 +75,7 @@ def pic(request):
 
 @csrf_exempt
 def authDeliver(request):
-
+    
     deliverPhone = decrypt.decryptMessage(request.POST['deliverPhone'])
     deliverID = decrypt.decryptMessage(request.POST['deliverID'])
     
