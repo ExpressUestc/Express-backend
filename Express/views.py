@@ -81,7 +81,7 @@ def authDeliver(request):
     
     flag = 1
     try:
-        deliverman = AuthDeliver.objects.get(deliverPhone=deliverPhone,deliverID=str(int(deliverID)))
+        deliverman = AuthDeliver.objects.get(deliverPhone=deliverPhone,deliverID=deliverID)
     except AuthDeliver.DoesNotExist,e:
         flag = 0
 
@@ -189,9 +189,25 @@ def distribute(request):
         deliverman = DeliverMan(express=express, deliverPhone=deliverPhone)
         deliverman.save()
     # send message to receiver and return the response
-    sendmessage.distribute(rcvName,goods,rcvAddress,code,rcvPhone,deliverPhone)
-    feedback = '短信发送成功'
-    response = {'feedback': feedback}
+    #response_temp =  sendmessage.distribute(rcvName,goods,rcvAddress,code,rcvPhone,deliverPhone)
+
+    rcvName = rcvName.encode('utf-8')
+    goods = goods.encode('utf-8')
+    rcvAddress = rcvAddress.encode('utf-8')
+    code = code.encode('utf-8')
+    rcvPhone = rcvPhone.encode('utf-8')
+    deliverPhone = deliverPhone.encode('utf-8')
+    response_temp =  sendmessage.distribute(rcvName,goods,rcvAddress,code,rcvPhone,deliverPhone)
+    #response = {'rcvName': rcvName,'goods':goods,'rcvAddress':rcvAddress,'code':code,'rcvPhone':rcvPhone,'deliverPhone':deliverPhone}
+    #return JsonResponse(response)
+
+    dictresponse_temp = json.loads(response_temp)
+    status = dictresponse_temp["resp"]["respCode"]
+    if status == '000000':
+        feedback = '短信发送成功'
+    else:
+        feedback = '短信发送失败'
+    response = {'feedback':feedback}
     return JsonResponse(response)
 
 @csrf_exempt
