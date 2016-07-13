@@ -12,5 +12,6 @@ urlpatterns = [
     url(r'^getVerify/$',views.getVerify,name='getVerify'),
     url(r'^authVerify/$',views.authVerify,name='authVerify'),
     url(r'^test/$',views.test,name='test'),
-    url(r'^authDeliver/$',views.authDeliver,name='authDeliver')
+    url(r'^authDeliver/$',views.authDeliver,name='authDeliver'),
+    url(r'^employee/$',views.employee,name='employee')
 ]

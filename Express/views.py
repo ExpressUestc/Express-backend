@@ -16,6 +16,7 @@ from django.db.models.query import *
 import decrypt
 from django.views.decorators.csrf import csrf_exempt
 import sys
+from models import Employee
 reload(sys)
 
 sys.setdefaultencoding('utf8')
@@ -321,3 +322,14 @@ def authVerify(request):
     response = {'feedback':feedback}
 
     return JsonResponse(response)
+
+# test for mongoengine ORM
+def employee(request):
+    employee = Employee.objects.create(
+        email = "1971990184@qq.com",
+        first_name = "Pedro",
+        last_name = "Kong"
+    )
+    employee.save()
+    feedback = 'succeed'
+    return JsonResponse({'feedback':feedback})

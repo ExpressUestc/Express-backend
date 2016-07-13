@@ -2,7 +2,7 @@ import datetime
 from django.db import models
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
-
+from mongoengine import *
 
 @python_2_unicode_compatible  #used for support python2
 class Express(models.Model):
@@ -44,3 +44,8 @@ class VerifyCode(models.Model):
 class AuthDeliver(models.Model):
     deliverPhone = models.CharField(max_length=20)
     deliverID = models.CharField(max_length=20)
+
+class Employee(Document):
+    email = StringField(required=True)
+    first_name = StringField(max_length=50)
+    last_name = StringField(max_length=50)
