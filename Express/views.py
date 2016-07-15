@@ -60,7 +60,7 @@ def index(request):
     # 6.save the info into the sqlite3
     # Todo:transform the code
     # Todo:encrypt info in db
-    express = Express(send_name=myName,send_phone=myPhone,send_address=myAddress,send_postcode=myPostcode,
+    express = Express.objects.create(send_name=myName,send_phone=myPhone,send_address=myAddress,send_postcode=myPostcode,
                     extra_price=extraPrice,receive_name=rcvName,receive_phone=rcvPhone,receive_address=rcvAddress,receive_postcode=rcvPostcode,goods=goods,express_company=expressCompany,remarks=remarks,
                     code=code)
     express.save()
@@ -82,7 +82,7 @@ def authDeliver(request):
     
     flag = 1
     try:
-        deliverman = AuthDeliver.objects.get(deliverPhone=deliverPhone,deliverID=deliverID)
+        deliverman = AuthDeliver.objects(deliverPhone=deliverPhone,deliverID=deliverID)
     except AuthDeliver.DoesNotExist,e:
         flag = 0
 
@@ -107,7 +107,7 @@ def sending(request):
 
     # 3.get express
     try:
-        express = Express.objects.get(code=code)
+        express = Express.objects(code=code)
     except Express.DoesNotExist,e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback':feedback}
@@ -118,7 +118,7 @@ def sending(request):
         express.deliverman.deliverID = deliverID
         express.deliverman.save()
     except DeliverMan.DoesNotExist, e:
-        deliverman = DeliverMan(express=express, deliverPhone=deliverPhone,deliverID=deliverID)
+        deliverman = DeliverMan.objects.create(express=express, deliverPhone=deliverPhone,deliverID=deliverID)
         deliverman.save()
     # 5.save pos
     express.pos = pos
@@ -141,7 +141,7 @@ def find(request):
     code = decrypt.decryptMessage(request.POST['code'])
     # 3.get express
     try:
-        express = Express.objects.get(code=code)
+        express = Express.objects(code=code)
     except Express.DoesNotExist, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
@@ -171,7 +171,7 @@ def distribute(request):
 
     code = dictdecryptmessage['code']
     try:
-        express = Express.objects.get(code=code)
+        express = Express.objects(code=code)
     except Express.DoesNotExist, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
@@ -187,7 +187,7 @@ def distribute(request):
         express.deliverman.deliverID = deliverID
         express.deliverman.save()
     except DeliverMan.DoesNotExist,e:
-        deliverman = DeliverMan(express=express, deliverPhone=deliverPhone)
+        deliverman = DeliverMan.objects.create(express=express, deliverPhone=deliverPhone)
         deliverman.save()
     # send message to receiver and return the response
     #response_temp =  sendmessage.distribute(rcvName,goods,rcvAddress,code,rcvPhone,deliverPhone)
@@ -220,7 +220,7 @@ def auth(request):
     code = dictdecryptmessage['code']
     # using code to get the express object
     try:
-        express = Express.objects.get(code=code)
+        express = Express.objects(code=code)
     except Express.DoesNotExist, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
@@ -249,7 +249,7 @@ def getVerify(request):
     code = dictdecryptMessage['code']
 
     try:
-        express = Express.objects.get(code=code)
+        express = Express.objects(code=code)
     except Express.DoesNotExist, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
@@ -275,7 +275,7 @@ def getVerify(request):
     except KeyError ,e:
         feedback = '请求过于频繁，请稍后再试'
     except VerifyCode.DoesNotExist,e:
-        verifycode = VerifyCode(express=express, verifycode=verifyCode, codedate=createDate)
+        verifycode = VerifyCode.objects.create(express=express, verifycode=verifyCode, codedate=createDate)
         verifycode.save()
         feedback = '验证码已发送'
 
@@ -293,7 +293,7 @@ def authVerify(request):
     code = dictdecryptmessage['code']
 
     try:
-        express = Express.objects.get(code=code)
+        express = Express.objects(code=code)
     except Express.DoesNotExist, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
