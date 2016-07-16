@@ -114,15 +114,11 @@ def sending(request):
         response = {'feedback':feedback}
         return JsonResponse(response)
     # 4.save deliverPhone
-    try:
-        express.deliverman.deliverPhone = deliverPhone
-        express.deliverman.deliverID = deliverID
-        express.deliverman.save()
-    except DeliverMan.DoesNotExist, e:
-        deliverman = DeliverMan.objects.create(express=express, deliverPhone=deliverPhone,deliverID=deliverID)
-        deliverman.save()
+    deliverman = DeliverMan.objects.create(deliverPhone=deliverPhone,deliverID=deliverID)
+    deliverman.save()
     # 5.save pos
     express.pos = pos
+    express.deliverman = deliverman
     express.save()
     # Todo:add if else
     # 6.create response
