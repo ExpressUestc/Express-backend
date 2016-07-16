@@ -108,6 +108,7 @@ def sending(request):
     # 3.get express
     try:
         express = Express.objects(code=code)
+        express = express[0]
     except Express.DoesNotExist,e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback':feedback}
@@ -142,6 +143,9 @@ def find(request):
     # 3.get express
     try:
         express = Express.objects(code=code)
+        # cause previous express is queryset so use the following code to get
+        # real item
+        express = express[0]
     except Express.DoesNotExist, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
@@ -172,6 +176,7 @@ def distribute(request):
     code = dictdecryptmessage['code']
     try:
         express = Express.objects(code=code)
+        express = express[0]
     except Express.DoesNotExist, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
@@ -221,6 +226,7 @@ def auth(request):
     # using code to get the express object
     try:
         express = Express.objects(code=code)
+        express = express[0]
     except Express.DoesNotExist, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
@@ -250,6 +256,7 @@ def getVerify(request):
 
     try:
         express = Express.objects(code=code)
+        express = express[0]
     except Express.DoesNotExist, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
@@ -294,6 +301,7 @@ def authVerify(request):
 
     try:
         express = Express.objects(code=code)
+        express = express[0]
     except Express.DoesNotExist, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}

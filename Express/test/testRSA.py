@@ -7,7 +7,7 @@ from Crypto.Cipher import PKCS1_v1_5 as Cipher_pkcs1_v1_5
 
 # message = '{"name":"任远航","age":"20","phone":"18161251991"}'
 # message = 'hello ghost, this is a plian text'
-message = '18161251991'
+message = '4410a17354'
 # dictMessage = json.loads(message)
 # print dictMessage
 with open('public.pem') as f:
