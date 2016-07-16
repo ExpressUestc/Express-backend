@@ -109,16 +109,20 @@ def sending(request):
     try:
         express = Express.objects(code=code)
         express = express[0]
-    except Express.DoesNotExist,e:
+    except IndexError,e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback':feedback}
         return JsonResponse(response)
     # 4.save deliverPhone
-    deliverman = DeliverMan.objects.create(deliverPhone=deliverPhone,deliverID=deliverID)
-    deliverman.save()
+    try:
+        express.deliverman.deliverPhone = deliverPhone
+        express.deliverman.deliverID = deliverID
+    except AttributeError,e:
+        deliverman = DeliverMan.objects.create(deliverPhone=deliverPhone, deliverID=deliverID)
+        deliverman.save()
+        express.deliverman = deliverman
     # 5.save pos
     express.pos = pos
-    express.deliverman = deliverman
     express.save()
     # Todo:add if else
     # 6.create response
@@ -188,8 +192,10 @@ def distribute(request):
         express.deliverman.deliverID = deliverID
         express.deliverman.save()
     except DeliverMan.DoesNotExist,e:
-        deliverman = DeliverMan.objects.create(express=express, deliverPhone=deliverPhone)
+        deliverman = DeliverMan.objects.create(deliverPhone=deliverPhone,deliverID=deliverID)
         deliverman.save()
+        express.deliverman = deliverman
+        express.save()
     # send message to receiver and return the response
     #response_temp =  sendmessage.distribute(rcvName,goods,rcvAddress,code,rcvPhone,deliverPhone)
 
