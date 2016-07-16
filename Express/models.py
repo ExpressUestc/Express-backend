@@ -2,6 +2,19 @@ import datetime
 from django.db import models
 from mongoengine import *
 
+class DeliverMan(Document):
+    # express = models.OneToOneField(Express,on_delete=models.CASCADE)
+    deliverPhone = StringField(max_length=20)
+    deliverID = StringField(max_length=20)
+
+    def __str__(self):
+        return "deliverman's phone is %s" % self.deliverPhone
+
+class VerifyCode(Document):
+    # express = models.OneToOneField(Express,on_delete=models.CASCADE)
+    verifycode = StringField(max_length=10)
+    codestatus = BooleanField(default=False)
+    codedate = StringField(max_length=20)
 
 class Express(Document):
     receive_name = StringField(max_length=100)
@@ -26,21 +39,6 @@ class Express(Document):
 
     def __str__(self):
         return self.receive_name+self.receive_phone+self.code
-
-class DeliverMan(Document):
-    # express = models.OneToOneField(Express,on_delete=models.CASCADE)
-    deliverPhone = StringField(max_length=20)
-    deliverID = StringField(max_length=20)
-
-    def __str__(self):
-        return "deliverman's phone is %s" % self.deliverPhone
-
-
-class VerifyCode(Document):
-    # express = models.OneToOneField(Express,on_delete=models.CASCADE)
-    verifycode = StringField(max_length=10)
-    codestatus = BooleanField(default=False)
-    codedate = StringField(max_length=20)
 
 class AuthDeliver(Document):
     deliverPhone = StringField(max_length=20)
