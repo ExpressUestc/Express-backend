@@ -83,7 +83,8 @@ def authDeliver(request):
     flag = 1
     try:
         deliverman = AuthDeliver.objects(deliverPhone=deliverPhone,deliverID=deliverID)
-    except AuthDeliver.DoesNotExist,e:
+        deliverman = deliverman[0]
+    except IndexError,e:
         flag = 0
 
     response = {'flag':flag}
@@ -147,7 +148,7 @@ def find(request):
         # cause previous express is queryset so use the following code to get
         # real item
         express = express[0]
-    except Express.DoesNotExist, e:
+    except IndexError, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
         return JsonResponse(response)
@@ -178,7 +179,7 @@ def distribute(request):
     try:
         express = Express.objects(code=code)
         express = express[0]
-    except Express.DoesNotExist, e:
+    except IndexError, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
         return JsonResponse(response)
@@ -192,11 +193,11 @@ def distribute(request):
         express.deliverman.deliverPhone = deliverPhone
         express.deliverman.deliverID = deliverID
         express.deliverman.save()
-    except DeliverMan.DoesNotExist,e:
+    except AttributeError,e:
         deliverman = DeliverMan.objects.create(deliverPhone=deliverPhone,deliverID=deliverID)
         deliverman.save()
         express.deliverman = deliverman
-        express.save()
+    express.save()
     # send message to receiver and return the response
     #response_temp =  sendmessage.distribute(rcvName,goods,rcvAddress,code,rcvPhone,deliverPhone)
 
@@ -230,7 +231,7 @@ def auth(request):
     try:
         express = Express.objects(code=code)
         express = express[0]
-    except Express.DoesNotExist, e:
+    except IndexError, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
         return JsonResponse(response)
@@ -260,7 +261,7 @@ def getVerify(request):
     try:
         express = Express.objects(code=code)
         express = express[0]
-    except Express.DoesNotExist, e:
+    except IndexError, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
         return JsonResponse(response)
@@ -284,11 +285,13 @@ def getVerify(request):
         feedback = '验证码已发送'
     except KeyError ,e:
         feedback = '请求过于频繁，请稍后再试'
-    except VerifyCode.DoesNotExist,e:
-        verifycode = VerifyCode.objects.create(express=express, verifycode=verifyCode, codedate=createDate)
+    except AttributeError,e:
+        verifycode = VerifyCode.objects.create(verifycode=verifyCode, codedate=createDate)
         verifycode.save()
+        express.verifycode = verifycode
         feedback = '验证码已发送'
-
+        
+    express.save()
     response = {'feedback':feedback}
     return JsonResponse(response)
 
@@ -305,7 +308,7 @@ def authVerify(request):
     try:
         express = Express.objects(code=code)
         express = express[0]
-    except Express.DoesNotExist, e:
+    except IndexError, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback': feedback}
         return JsonResponse(response)
@@ -324,10 +327,8 @@ def authVerify(request):
                 express.verifycode.save()
         else:
             sendmessage.warn(code=code, deliverPhone=express.deliverman.deliverPhone)
-    except VerifyCode.DoesNotExist,e:
-        feedback = '很抱歉，数据库没有该快件的验证码，无法进行验证'
-    except DeliverMan.DoesNotExist,e:
-        feedback = '对不起，该快件没有对应的快递员'
+    except AttributeError,e:
+        feedback = '很抱歉，该快件没有对应的快递员或者数据库没有该快件的验证码，无法进行验证'
 
 
     response = {'feedback':feedback}
