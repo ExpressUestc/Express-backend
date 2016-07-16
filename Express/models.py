@@ -20,13 +20,15 @@ class Express(Document):
     extra_price = StringField(max_length=20)
     # add position
     pos = StringField(max_length=100)
+    #
+    deliverman = ReferenceField(DeliverMan,reverse_delete_rule=CASCADE)
+    verifycode = ReferenceField(VerifyCode,reverse_delete_rule=CASCADE)
 
     def __str__(self):
         return self.receive_name+self.receive_phone+self.code
 
 class DeliverMan(Document):
     # express = models.OneToOneField(Express,on_delete=models.CASCADE)
-    express = ReferenceField(Express,reverse_delete_rule=CASCADE)
     deliverPhone = StringField(max_length=20)
     deliverID = StringField(max_length=20)
 
@@ -36,7 +38,6 @@ class DeliverMan(Document):
 
 class VerifyCode(Document):
     # express = models.OneToOneField(Express,on_delete=models.CASCADE)
-    express = ReferenceField(Express,reverse_delete_rule=CASCADE)
     verifycode = StringField(max_length=10)
     codestatus = BooleanField(default=False)
     codedate = StringField(max_length=20)
