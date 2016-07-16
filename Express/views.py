@@ -117,6 +117,7 @@ def sending(request):
     try:
         express.deliverman.deliverPhone = deliverPhone
         express.deliverman.deliverID = deliverID
+        express.deliverman.save()
     except AttributeError,e:
         deliverman = DeliverMan.objects.create(deliverPhone=deliverPhone, deliverID=deliverID)
         deliverman.save()
