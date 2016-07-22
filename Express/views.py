@@ -1,6 +1,7 @@
 # coding:utf8
 import json
 import os
+from Express.shortestPath.findShortest import getPath
 import shutil
 from Crypto.PublicKey import RSA
 
@@ -63,6 +64,7 @@ def index(request):
     express = Express.objects.create(send_name=myName,send_phone=myPhone,send_address=myAddress,send_postcode=myPostcode,
                     extra_price=extraPrice,receive_name=rcvName,receive_phone=rcvPhone,receive_address=rcvAddress,receive_postcode=rcvPostcode,goods=goods,express_company=expressCompany,remarks=remarks,
                     code=code)
+    express.path,express.time = getPath(myAddress.encode('utf-8'),rcvAddress.encode('utf-8'))
     express.save()
 
     # 7.create response

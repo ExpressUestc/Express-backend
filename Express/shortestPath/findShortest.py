@@ -49,7 +49,7 @@ def dijkstra(edges, from_node, to_node):
     return len_shortest_path, ret_path
 
 M = 999999  # This represents a large distance. It means that there is no link.
-dataframe =  pandas.read_excel('province.xlsx')
+dataframe =  pandas.read_excel('~/gitProjects/Express-backend/Express/map/province.xlsx')
 dataset =  dataframe.fillna(value=M).values.tolist()
 header = dataframe.index.tolist()
 
@@ -67,15 +67,20 @@ for i in range(len(M_topo)):
         if i != j and M_topo[i][j] != M:
             edges.append((i, j, M_topo[i][j]))  ### (i,j) is a link; M_topo[i][j] here is 1, the length of link (i,j).
 
-print "=== Dijkstra ==="
-print "Let's find the shortest-path from "+"成都"+"to"+"上海"+":"
-length, Shortest_path = dijkstra(edges, header.index(u'成都'), header.index(u'上海'))
-print 'length = ', length
-
-path = []
-for num in Shortest_path:
-     path.append(header[num])
-
-print 'The shortest path is '
-for item in path:
-    print item
+# input should be unicode
+def getPath(_from,_to):
+    length, Shortest_path = dijkstra(edges, header.index(_from), header.index(_to))
+    time,path = [],[]
+    for index,num in enumerate(Shortest_path):
+        path.append(header[num])
+        if index == len(Shortest_path)-1:
+            break
+        time.append(dataset[Shortest_path[index]][Shortest_path[index+1]])
+    return path,time
+# test
+if __name__ == '__main__':
+    path,time = getPath(u'成都',u'上海')
+    for item in path:
+        print item
+    for item in time:
+        print item
