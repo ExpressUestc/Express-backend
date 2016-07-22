@@ -22,6 +22,7 @@ reload(sys)
 
 sys.setdefaultencoding('utf8')
 
+@csrf_exempt
 def test(request):
     return HttpResponse('This is test')
 

@@ -5,7 +5,7 @@ from Crypto.PublicKey import RSA
 
 
 def decryptMessage(encryptmessage):
-    with open('/home/projects/Expressbackend/Express/private.pem') as f:
+    with open('/home/projects/Expressbackend/Express/test/private.pem') as f:
         key = f.read()
         rsakey = RSA.importKey(key)
         cipher = Cipher_pkcs1_v1_5.new(rsakey)
