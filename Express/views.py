@@ -128,6 +128,12 @@ def sending(request):
         express.deliverman = deliverman
     # 5.save pos
     express.pos = pos
+    # get next station time
+    next_time = express.time[express.path.index(pos.encode('utf-8'))]
+    # save message_time
+    now_time = datetime.datetime.now()
+    message_time = now_time+datetime.timedelta(hours=next_time)
+    express.message_time = message_time
     express.save()
     # Todo:add if else
     # 6.create response
