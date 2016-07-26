@@ -5,6 +5,6 @@ logger = get_task_logger(__name__)
 
 
 @task(name="testCelery")
-def testCelery(self,email, message):
+def testCelery():
     """sends an email when feedback form is filled successfully"""
     print 'hello world'
