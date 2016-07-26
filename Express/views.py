@@ -17,6 +17,8 @@ from django.db.models.query import *
 import decrypt
 from django.views.decorators.csrf import csrf_exempt
 import sys
+
+from Express.tasks import testCelery
 from models import Employee
 reload(sys)
 
@@ -115,7 +117,7 @@ def sending(request):
         express = express[0]
     except IndexError,e:
         feedback = '很抱歉，该快件ＩＤ不存在'
-        response = {'feedback':feedback}
+        response = {'feedback':code}
         return JsonResponse(response)
     # 4.save deliverPhone
     try:
@@ -133,6 +135,11 @@ def sending(request):
     # save message_time
     now_time = datetime.datetime.now()
     message_time = now_time+datetime.timedelta(hours=next_time)
+
+    # test celery
+    test_time = now_time+datetime.timedelta(hours=-8,seconds=30)
+    testCelery.apply_async(eta=test_time)
+
     express.message_time = message_time
     express.save()
     # Todo:add if else
