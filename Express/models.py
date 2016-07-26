@@ -37,6 +37,7 @@ class Express(Document):
     path = ListField()
     time = ListField()
     message_time = DateTimeField()
+    task_id = StringField()
     #
     deliverman = ReferenceField(DeliverMan,reverse_delete_rule=CASCADE)
     verifycode = ReferenceField(VerifyCode,reverse_delete_rule=CASCADE)

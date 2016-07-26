@@ -18,7 +18,8 @@ import decrypt
 from django.views.decorators.csrf import csrf_exempt
 import sys
 
-from Express.tasks import testCelery
+from Express.tasks import testCelery, sendMessage
+from Expressbackend.celery import app
 from models import Employee
 reload(sys)
 
@@ -128,20 +129,39 @@ def sending(request):
         deliverman = DeliverMan.objects.create(deliverPhone=deliverPhone, deliverID=deliverID)
         deliverman.save()
         express.deliverman = deliverman
-    # 5.save pos
-    express.pos = pos
-    # get next station time
-    next_time = express.time[express.path.index(pos.encode('utf-8'))]
-    # save message_time
-    now_time = datetime.datetime.now()
-    message_time = now_time+datetime.timedelta(hours=next_time)
+
+    # get next station duration
+    duration = express.time[express.path.index(pos.encode('utf-8'))]
+    upload_time = datetime.datetime.now()
+
+    try:
+        city_gap = express.path.index(pos.encode('utf-8'))-express.path.index(express.pos.encode('utf-8'))
+        if upload_time<express.message_time and city_gap == 1:
+            message_time = express.message_time+datetime.timedelta(hours=duration)
+            express.message_time = message_time
+            app.AsyncResult(express.task_id).revoke()
+            result = sendMessage.apply_async(args=[express.code, pos, duration,express.receive_phone],
+                            eta=message_time + datetime.timedelta(hours=-8))
+            express.task_id = result.task_id
+            express.pos = pos
+        else:
+            response = {'feedback': '抱歉，不在下一站或者转运超时，位置上传失败'}
+            return JsonResponse(response)
+    except AttributeError,e:
+        express.pos = pos
+        message_time = upload_time + datetime.timedelta(hours=duration)
+        express.message_time = message_time
+        result = sendMessage.apply_async(args=[express.code, pos, duration,express.receive_phone],
+                                         eta=message_time + datetime.timedelta(hours=-8))
+        express.task_id = result.task_id
+
 
     # test celery
-    test_time = now_time+datetime.timedelta(hours=-8,seconds=30)
-    testCelery.apply_async(eta=test_time)
+    # test_time = now_time+datetime.timedelta(hours=-8,seconds=30)
+    # testCelery.apply_async(eta=test_time)
 
-    express.message_time = message_time
     express.save()
+
     # Todo:add if else
     # 6.create response
     feedback = '位置已上传'
