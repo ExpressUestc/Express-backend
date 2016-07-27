@@ -6,6 +6,9 @@ import base64
 import datetime
 import urllib2
 import md5
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 # 返回签名
 def getSig(accountSid,accountToken,timestamp):
@@ -499,10 +502,10 @@ def lostAlarm(code,city,time,rcvPhone):
 
     isUseJson = True
 
-    toNumber = rcvPhone
+    toNumber = rcvPhone.encode('utf-8')
 
     templateId = "27114"
 
-    param = code+','+city+','+time
+    param = code.encode('utf-8')+','+city.encode('utf-8')+','+str(time).encode('utf-8')
 
     return test.templateSMS(accountSid, accountToken, appId, toNumber, templateId, param, isUseJson)

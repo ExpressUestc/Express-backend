@@ -132,6 +132,7 @@ def sending(request):
 
     # get next station duration
     duration = express.time[express.path.index(pos.encode('utf-8'))]
+    #duration = 0.05
     upload_time = datetime.datetime.now()
 
     try:
@@ -154,6 +155,8 @@ def sending(request):
         result = sendMessage.apply_async(args=[express.code, pos, duration,express.receive_phone],
                                          eta=message_time + datetime.timedelta(hours=-8))
         express.task_id = result.task_id
+        #response = sendmessage.lostAlarm(express.code,pos,duration,express.receive_phone)
+        #return HttpResponse(response)
 
 
     # test celery
