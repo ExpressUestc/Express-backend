@@ -70,7 +70,7 @@ def index(request):
     # Todo:encrypt info in db
     express = Express.objects.create(send_name=myName,send_phone=myPhone,send_address=myAddress,send_postcode=myPostcode,
                     extra_price=extraPrice,receive_name=rcvName,receive_phone=rcvPhone,receive_address=rcvAddress,receive_postcode=rcvPostcode,goods=goods,express_company=expressCompany,remarks=remarks,
-                    code=code,rcvCity=rcvCity,sendCity=sendCity)
+                    code=code,receive_city=rcvCity,send_city=sendCity)
     express.path,express.time = getPath(sendCity.encode('utf-8'),rcvCity.encode('utf-8'))
     express.save()
 
