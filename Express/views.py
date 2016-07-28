@@ -384,6 +384,7 @@ def authVerify(request):
 
     return JsonResponse(response)
 
+@csrf_exempt
 def authPost(request):
 
     decryptmessage = decrypt.decryptMessage(request.POST['message'])
