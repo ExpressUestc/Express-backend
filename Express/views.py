@@ -138,33 +138,39 @@ def sending(request):
         deliverman.save()
         express.deliverman = deliverman
 
-    # get next station duration
-    duration = express.time[express.path.index(city.encode('utf-8'))]
+    final = False
+    if city.encode('utf-8') == express.path[-1]:
+        final = True
+
+    if not final:
+        duration = express.time[express.path.index(city.encode('utf-8'))]
     #duration = 0.05
     upload_time = datetime.datetime.now()
 
     try:
         city_gap = express.path.index(city.encode('utf-8'))-express.path.index(express.city.encode('utf-8'))
         if upload_time<express.message_time and city_gap == 1:
-            message_time = express.message_time+datetime.timedelta(hours=duration)
-            express.message_time = message_time
             express.pos = pos
-            app.AsyncResult(express.task_id).revoke()
-            result = sendMessage.apply_async(args=[express.code, city, duration,express.receive_phone],
-                            eta=message_time + datetime.timedelta(hours=-8))
-            express.task_id = result.task_id
             express.city = city
+            app.AsyncResult(express.task_id).revoke()
+            if not final:
+                message_time = express.message_time+datetime.timedelta(hours=duration)
+                express.message_time = message_time
+                result = sendMessage.apply_async(args=[express.code, city, duration, express.receive_phone],
+                                                 eta=message_time + datetime.timedelta(hours=-8))
+                express.task_id = result.task_id
         else:
             response = {'feedback': '抱歉，不在下一站或者转运超时，位置上传失败'}
             return JsonResponse(response)
     except AttributeError,e:
         express.city = city
-        message_time = upload_time + datetime.timedelta(hours=duration)
-        express.message_time = message_time
         express.pos = pos
-        result = sendMessage.apply_async(args=[express.code, city, duration,express.receive_phone],
-                                         eta=message_time + datetime.timedelta(hours=-8))
-        express.task_id = result.task_id
+        if not final:
+            message_time = upload_time + datetime.timedelta(hours=duration)
+            express.message_time = message_time
+            result = sendMessage.apply_async(args=[express.code, city, duration,express.receive_phone],
+                                             eta=message_time + datetime.timedelta(hours=-8))
+            express.task_id = result.task_id
         #response = sendmessage.lostAlarm(express.code,city,duration,express.receive_phone)
         #return HttpResponse(response)
 
@@ -295,7 +301,7 @@ def auth(request):
             response = '抱歉，手机号验证失败'
         else:
             response = '恭喜，手机号验证成功，稍后我们会给您发送一条验证码，请耐心等待'
-    except DeliverMan.DoesNotExist,e:
+    except AttributeError,e:
         response = '对不起，该快件没有对应的快递员'
 
     jsonResponse = {'flag':flag,'response':response}
