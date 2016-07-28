@@ -47,6 +47,9 @@ def index(request):
     expressCompany = decrypt.decryptMessage(request.POST['expressCompany'])
     remarks = decrypt.decryptMessage(request.POST['remarks'])
 
+    rcvCity = decrypt.decryptMessage(request.POST['rcvCity'])
+    sendCity = decrypt.decryptMessage(request.POST['sendCity'])
+
     # 2.create random string with 10 characters
     code = (''.join(map(lambda xx: (hex(ord(xx))[2:]), os.urandom(16))))[0:10]
 
@@ -67,8 +70,8 @@ def index(request):
     # Todo:encrypt info in db
     express = Express.objects.create(send_name=myName,send_phone=myPhone,send_address=myAddress,send_postcode=myPostcode,
                     extra_price=extraPrice,receive_name=rcvName,receive_phone=rcvPhone,receive_address=rcvAddress,receive_postcode=rcvPostcode,goods=goods,express_company=expressCompany,remarks=remarks,
-                    code=code)
-    express.path,express.time = getPath(myAddress.encode('utf-8'),rcvAddress.encode('utf-8'))
+                    code=code,rcvCity=rcvCity,sendCity=sendCity)
+    express.path,express.time = getPath(sendCity.encode('utf-8'),rcvCity.encode('utf-8'))
     express.save()
 
     # 7.create response
@@ -103,6 +106,7 @@ def sending(request):
     # 2.get info
     decryptmessage = decrypt.decryptMessage(request.POST['message'])
     pos = decrypt.decryptMessage(request.POST['pos'])
+    city = decrypt.decryptMessage(request.POST['city'])
     deliverPhone =  decrypt.decryptMessage(request.POST['deliverPhone'])
     deliverID = decrypt.decryptMessage(request.POST['deliverID'])
 
@@ -120,6 +124,10 @@ def sending(request):
         feedback = '很抱歉，该快件ＩＤ不存在'
         response = {'feedback':code}
         return JsonResponse(response)
+
+    if express.auth == False:
+        return JsonResponse({'feedback':'抱歉，您的快递单未经验证，无法转运'})
+
     # 4.save deliverPhone
     try:
         express.deliverman.deliverPhone = deliverPhone
@@ -131,31 +139,33 @@ def sending(request):
         express.deliverman = deliverman
 
     # get next station duration
-    duration = express.time[express.path.index(pos.encode('utf-8'))]
+    duration = express.time[express.path.index(city.encode('utf-8'))]
     #duration = 0.05
     upload_time = datetime.datetime.now()
 
     try:
-        city_gap = express.path.index(pos.encode('utf-8'))-express.path.index(express.pos.encode('utf-8'))
+        city_gap = express.path.index(city.encode('utf-8'))-express.path.index(express.city.encode('utf-8'))
         if upload_time<express.message_time and city_gap == 1:
             message_time = express.message_time+datetime.timedelta(hours=duration)
             express.message_time = message_time
+            express.pos = pos
             app.AsyncResult(express.task_id).revoke()
-            result = sendMessage.apply_async(args=[express.code, pos, duration,express.receive_phone],
+            result = sendMessage.apply_async(args=[express.code, city, duration,express.receive_phone],
                             eta=message_time + datetime.timedelta(hours=-8))
             express.task_id = result.task_id
-            express.pos = pos
+            express.city = city
         else:
             response = {'feedback': '抱歉，不在下一站或者转运超时，位置上传失败'}
             return JsonResponse(response)
     except AttributeError,e:
-        express.pos = pos
+        express.city = city
         message_time = upload_time + datetime.timedelta(hours=duration)
         express.message_time = message_time
-        result = sendMessage.apply_async(args=[express.code, pos, duration,express.receive_phone],
+        express.pos = pos
+        result = sendMessage.apply_async(args=[express.code, city, duration,express.receive_phone],
                                          eta=message_time + datetime.timedelta(hours=-8))
         express.task_id = result.task_id
-        #response = sendmessage.lostAlarm(express.code,pos,duration,express.receive_phone)
+        #response = sendmessage.lostAlarm(express.code,city,duration,express.receive_phone)
         #return HttpResponse(response)
 
 
@@ -372,6 +382,25 @@ def authVerify(request):
 
     response = {'feedback':feedback}
 
+    return JsonResponse(response)
+
+def authPost(request):
+
+    decryptmessage = decrypt.decryptMessage(request.POST['message'])
+    dictdecryptMessage = json.loads(decryptmessage)
+    code = dictdecryptMessage['code']
+
+    try:
+        express = Express.objects(code=code)
+        express = express[0]
+    except IndexError, e:
+        feedback = '很抱歉，该快件ＩＤ不存在'
+        response = {'feedback': feedback}
+        return JsonResponse(response)
+
+    express.auth = True
+    express.save()
+    response = {'flag':1}
     return JsonResponse(response)
 
 # test for mongoengine ORM

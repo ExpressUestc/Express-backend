@@ -21,6 +21,7 @@ class Express(Document):
     receive_phone = StringField(max_length=20)
     receive_address = StringField(max_length=100)
     receive_postcode = StringField(max_length=20)
+    receive_city = StringField(max_length=15)
     goods = StringField(max_length=100)
     express_company = StringField(max_length=20)
     remarks = StringField(max_length=100)
@@ -30,14 +31,17 @@ class Express(Document):
     send_phone = StringField(max_length=20)
     send_address = StringField(max_length=100)
     send_postcode = StringField(max_length=20)
+    send_city = StringField(max_length=15)
     extra_price = StringField(max_length=20)
     # add position
     pos = StringField(max_length=100)
+    city = StringField(max_length=15)
     #
     path = ListField()
     time = ListField()
     message_time = DateTimeField()
     task_id = StringField()
+    auth = BooleanField(default=False)
     #
     deliverman = ReferenceField(DeliverMan,reverse_delete_rule=CASCADE)
     verifycode = ReferenceField(VerifyCode,reverse_delete_rule=CASCADE)
