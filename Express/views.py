@@ -131,7 +131,10 @@ def sending(request):
         final = True
 
     if not final:
-        duration = express.time[express.path.index(city.encode('utf-8'))]
+        try:
+            duration = express.time[express.path.index(city.encode('utf-8'))]
+        except ValueError,e:
+            return JsonResponse({'feedback':'你转运的城市不在最短路上，转运失败！'})
     #duration = 0.05
     upload_time = datetime.datetime.now()
 
