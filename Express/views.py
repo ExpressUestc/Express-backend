@@ -14,6 +14,7 @@ from Express.models import Express,DeliverMan,VerifyCode,AuthDeliver
 from Express.shortestPath.findShortest import getPath
 from Express.tasks import sendMessage
 from Express.utils import decrypt, sendmessage
+from Express.utils.encrypt import encrypt
 from Express.utils.tools import decryptPostInfo
 from Expressbackend.celery import app
 from models import Employee
@@ -33,24 +34,9 @@ def index(request):
     # 1.get info from the request
     fields = ['myName','myPhone','myAddress','myPostcode','extraPrice',
         'rcvName','rcvPhone','rcvAddress','rcvPostcode','goods','expressCompany',
-        'remarks','rcvCity','sendCity']
+        'remarks','rcvCity','sendCity','key']
 
-    myName,myPhone,myAddress,myPostcode,extraPrice,rcvName,rcvPhone,rcvAddress,rcvPostcode,goods,expressCompany,remarks,rcvCity,sendCity = decryptPostInfo(request,fields)
-    # myName =  decrypt.decryptMessage(request.POST['myName'])
-    # myPhone = decrypt.decryptMessage(request.POST['myPhone'])
-    # myAddress = decrypt.decryptMessage(request.POST['myAddress'])
-    # myPostcode = decrypt.decryptMessage(request.POST['myPostcode'])
-    # extraPrice = decrypt.decryptMessage(request.POST['extraPrice'])
-    # rcvName = decrypt.decryptMessage(request.POST['rcvName'])
-    # rcvPhone = decrypt.decryptMessage(request.POST['rcvPhone'])
-    # rcvAddress = decrypt.decryptMessage(request.POST['rcvAddress'])
-    # rcvPostcode = decrypt.decryptMessage(request.POST['rcvPostcode'])
-    # goods = decrypt.decryptMessage(request.POST['goods'])
-    # expressCompany = decrypt.decryptMessage(request.POST['expressCompany'])
-    # remarks = decrypt.decryptMessage(request.POST['remarks'])
-    #
-    # rcvCity = decrypt.decryptMessage(request.POST['rcvCity'])
-    # sendCity = decrypt.decryptMessage(request.POST['sendCity'])
+    myName,myPhone,myAddress,myPostcode,extraPrice,rcvName,rcvPhone,rcvAddress,rcvPostcode,goods,expressCompany,remarks,rcvCity,sendCity,key = decryptPostInfo(request,fields)
 
     # 2.create random string with 10 characters
     code = (''.join(map(lambda xx: (hex(ord(xx))[2:]), os.urandom(16))))[0:10]
@@ -77,7 +63,8 @@ def index(request):
 
     # 7.create response
     # url = 'http://101.201.79.95/express/pic/?code='+code
-    response = {'code':code}
+    # Todo:use AES to encrypt response
+    response = {'code':encrypt(key,code)}
     return JsonResponse(response)
 
 def pic(request):
