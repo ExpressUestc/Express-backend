@@ -1,26 +1,22 @@
 # coding:utf8
+import datetime
 import json
 import os
-from Express.shortestPath.findShortest import getPath
-import shutil
-from Crypto.PublicKey import RSA
-
-import qrcode
-from django.http import JsonResponse
-from django.http import HttpResponse
-from django.template import loader
-from django.shortcuts import render, render_to_response
-from Express.models import Express,DeliverMan,VerifyCode,AuthDeliver
-import sendmessage
-import datetime
-from django.db.models.query import *
-import decrypt
-from django.views.decorators.csrf import csrf_exempt
 import sys
 
-from Express.tasks import testCelery, sendMessage
+from django.http import HttpResponse
+from django.http import JsonResponse
+from django.shortcuts import render_to_response
+from django.views.decorators.csrf import csrf_exempt
+
+import Express.utils.sendmessage
+from Express.models import Express,DeliverMan,VerifyCode,AuthDeliver
+from Express.shortestPath.findShortest import getPath
+from Express.tasks import sendMessage
+from Express.utils import decrypt, sendmessage
 from Expressbackend.celery import app
 from models import Employee
+
 reload(sys)
 
 sys.setdefaultencoding('utf8')
@@ -262,7 +258,7 @@ def distribute(request):
     code = code.encode('utf-8')
     rcvPhone = rcvPhone.encode('utf-8')
     deliverPhone = deliverPhone.encode('utf-8')
-    response_temp =  sendmessage.distribute(rcvName,goods,rcvAddress,code,rcvPhone,deliverPhone)
+    response_temp =  sendmessage.distribute(rcvName, goods, rcvAddress, code, rcvPhone, deliverPhone)
     #response = {'rcvName': rcvName,'goods':goods,'rcvAddress':rcvAddress,'code':code,'rcvPhone':rcvPhone,'deliverPhone':deliverPhone}
     #return JsonResponse(response)
 
@@ -325,7 +321,7 @@ def getVerify(request):
     verifyCode = (''.join(map(lambda xx: (hex(ord(xx))[2:]), os.urandom(16))))[0:6]
 
     # send message
-    response = sendmessage.getVerify(verifyCode=verifyCode,rcvPhone=rcvPhone)
+    response = sendmessage.getVerify(verifyCode=verifyCode, rcvPhone=rcvPhone)
 
     dictResponse = json.loads(response)
     # Todo:if send 10 or more messages there'll be an exception

@@ -1,7 +1,7 @@
 from celery.task import task
 from celery.utils.log import get_task_logger
 
-from Express.sendmessage import lostAlarm
+from Express.utils.sendmessage import lostAlarm
 
 logger = get_task_logger(__name__)
 
