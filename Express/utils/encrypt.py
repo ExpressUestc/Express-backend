@@ -8,11 +8,13 @@ def pad(s):
     :return: message to be encrypted(multiple of 16 in length)
     '''
     return s+((16-len(s)%16)*'{')
-def encrypt(s,cipher):
+def encrypt(key,s):
     '''encrypt message then base64 encode it'''
+    cipher = AES.new(key)
     return base64.b64encode(cipher.encrypt(pad(s)))
-def decrypt(s,cipher):
+def decrypt(key,s):
     '''decrypt message then cut its {'''
+    cipher = AES.new(key)
     dec = cipher.decrypt(base64.b64decode(s))
     l = dec.count('{')
     return dec[:len(dec)-l]
