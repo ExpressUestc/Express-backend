@@ -1,5 +1,6 @@
 import base64
 from Crypto.Cipher import AES
+from binascii import b2a_hex, a2b_hex
 
 def pad(s):
     '''
@@ -11,10 +12,10 @@ def pad(s):
 def encrypt(key,s):
     '''encrypt message then base64 encode it'''
     cipher = AES.new(key)
-    return cipher.encrypt(pad(s))
+    return b2a_hex(cipher.encrypt(pad(s)))
 def decrypt(key,s):
     '''decrypt message then cut its {'''
     cipher = AES.new(key)
-    dec = cipher.decrypt(s)
+    dec = cipher.decrypt(a2b_hex(s))
     l = dec.count('{')
     return dec[:len(dec)-l]
