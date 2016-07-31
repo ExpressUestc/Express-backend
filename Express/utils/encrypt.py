@@ -11,10 +11,10 @@ def pad(s):
 def encrypt(key,s):
     '''encrypt message then base64 encode it'''
     cipher = AES.new(key)
-    return base64.b64encode(cipher.encrypt(pad(s)))
+    return cipher.encrypt(pad(s))
 def decrypt(key,s):
     '''decrypt message then cut its {'''
     cipher = AES.new(key)
-    dec = cipher.decrypt(base64.b64decode(s))
+    dec = cipher.decrypt(s)
     l = dec.count('{')
     return dec[:len(dec)-l]
