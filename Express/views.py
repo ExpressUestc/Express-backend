@@ -73,9 +73,9 @@ def pic(request):
 
 @csrf_exempt
 def authDeliver(request):
-    
-    deliverPhone = decrypt.decryptMessage(request.POST['deliverPhone'])
-    deliverID = decrypt.decryptMessage(request.POST['deliverID'])
+
+    fields = ['deliverPhone','deliverID','key']
+    deliverPhone,deliverID,key = decryptPostInfo(request,fields)
     
     flag = 1
     try:
@@ -84,7 +84,7 @@ def authDeliver(request):
     except IndexError,e:
         flag = 0
 
-    response = {'flag':flag}
+    response = {'flag':encrypt(key,flag)}
 
     return JsonResponse(response)
 
@@ -92,11 +92,8 @@ def authDeliver(request):
 def sending(request):
 
     # 2.get info
-    decryptmessage = decrypt.decryptMessage(request.POST['message'])
-    pos = decrypt.decryptMessage(request.POST['pos'])
-    city = decrypt.decryptMessage(request.POST['city'])
-    deliverPhone =  decrypt.decryptMessage(request.POST['deliverPhone'])
-    deliverID = decrypt.decryptMessage(request.POST['deliverID'])
+    fields = ['message','pos','city','deliverPhone','deliverID','key']
+    decryptmessage,pos,city,deliverPhone,deliverID,key = decryptPostInfo(request,fields)
 
     # get decryptmessage
     # decryptmessage = decrypt.decryptMessage(encryptmessage)
@@ -110,11 +107,11 @@ def sending(request):
         express = express[0]
     except IndexError,e:
         feedback = '很抱歉，该快件ＩＤ不存在'
-        response = {'feedback':code}
+        response = {'feedback':encrypt(key,feedback)}
         return JsonResponse(response)
 
     if express.auth == False:
-        return JsonResponse({'feedback':'抱歉，您的快递单未经验证，无法转运'})
+        return JsonResponse({'feedback':encrypt(key,'抱歉，您的快递单未经验证，无法转运')})
 
     # 4.save deliverPhone
     try:
@@ -134,7 +131,7 @@ def sending(request):
         try:
             duration = express.time[express.path.index(city.encode('utf-8'))]
         except ValueError,e:
-            return JsonResponse({'feedback':'你转运的城市不在最短路上，转运失败！'})
+            return JsonResponse({'feedback':encrypt(key,'你转运的城市不在最短路上，转运失败！')})
     #duration = 0.05
     upload_time = datetime.datetime.now()
 
@@ -151,7 +148,7 @@ def sending(request):
                                                  eta=message_time + datetime.timedelta(hours=-8))
                 express.task_id = result.task_id
         else:
-            response = {'feedback': '抱歉，不在下一站或者转运超时，位置上传失败'}
+            response = {'feedback': encrypt(key,'抱歉，不在下一站或者转运超时，位置上传失败')}
             return JsonResponse(response)
     except AttributeError,e:
         express.city = city
@@ -175,19 +172,14 @@ def sending(request):
     # Todo:add if else
     # 6.create response
     feedback = '位置已上传'
-    response = {'feedback':feedback}
+    response = {'feedback':encrypt(key,feedback)}
     return JsonResponse(response)
 
 @csrf_exempt
 def find(request):
-    # 1.decrypt the message
-    # message = decrypt.decryptMessage(request.GET['ciphertext'])
-
-    # dictMessage = json.loads(message)
     # 2.get info
-    rcvName = decrypt.decryptMessage(request.POST['rcvName'])
-    rcvPhone = decrypt.decryptMessage(request.POST['rcvPhone'])
-    code = decrypt.decryptMessage(request.POST['code'])
+    fields = ['rcvName','rcvPhone','code','key']
+    rcvName,rcvPhone,code,key = decryptPostInfo(request,fields)
     # 3.get express
     try:
         express = Express.objects(code=code)
@@ -196,28 +188,26 @@ def find(request):
         express = express[0]
     except IndexError, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
-        response = {'feedback': feedback}
+        response = {'feedback': encrypt(key,feedback)}
         return JsonResponse(response)
     # 4.check info
     if express.receive_phone != rcvPhone or express.receive_name.encode("utf-8") != rcvName:
         feedback = '对不起，您的信息有误'
-        response = {'feedback': feedback}
+        response = {'feedback': encrypt(key,feedback)}
 	#response = {'rcvName':rcvName,'rcvPhone':rcvPhone,'receive_name':express.receive_name,'receive_phone':express.receive_phone}
 	return JsonResponse(response)
     # 5. get pos
     pos = express.pos
-    response = {'pos':pos}
+    response = {'pos':encrypt(key,pos)}
     return JsonResponse(response)
 
 @csrf_exempt
 def distribute(request):
     # message = decrypt.decryptMessage(request.GET['ciphertext'])
     # dictMessage = json.loads(message)
-    decryptmessage = decrypt.decryptMessage(request.POST['message'])
-    deliverPhone = decrypt.decryptMessage(request.POST['deliverPhone'])
-    deliverID = decrypt.decryptMessage(request.POST['deliverID'])
+    fields = ['message','deliverPhone','deliverID','key']
+    decryptmessage, deliverPhone, deliverID, key = decryptPostInfo(request,fields)
 
-    # decryptmessage = decrypt.decryptMessage(encryptmessage)
     dictdecryptmessage = json.loads(decryptmessage)
     # using code to get the express object
 
@@ -227,7 +217,7 @@ def distribute(request):
         express = express[0]
     except IndexError, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
-        response = {'feedback': feedback}
+        response = {'feedback': encrypt(key,feedback)}
         return JsonResponse(response)
     rcvName =  express.receive_name
     rcvAddress = express.receive_address
@@ -263,14 +253,14 @@ def distribute(request):
         feedback = '短信发送成功'
     else:
         feedback = '短信发送失败'
-    response = {'feedback':feedback}
+    response = {'feedback':encrypt(key,feedback)}
     return JsonResponse(response)
 
 @csrf_exempt
 def auth(request):
 
-    decryptmessage = decrypt.decryptMessage(request.POST['message'])
-    rcvPhone = decrypt.decryptMessage(request.POST['rcvPhone'])
+    fields = ['message','rcvPhone','key']
+    decryptmessage,rcvPhone,key = decryptPostInfo(request,fields)
     dictdecryptmessage = json.loads(decryptmessage)
     code = dictdecryptmessage['code']
     # using code to get the express object
@@ -279,7 +269,7 @@ def auth(request):
         express = express[0]
     except IndexError, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
-        response = {'feedback': feedback}
+        response = {'feedback': encrypt(key,feedback)}
         return JsonResponse(response)
     # if auth fails ,send warning message to the deliverman
     # Todo: response has a lot to consider
@@ -295,12 +285,14 @@ def auth(request):
     except AttributeError,e:
         response = '对不起，该快件没有对应的快递员'
 
-    jsonResponse = {'flag':flag,'response':response}
+    jsonResponse = {'flag':encrypt(key,flag),'response':encrypt(key,response)}
     return JsonResponse(jsonResponse)
 
 @csrf_exempt
 def getVerify(request):
-    decryptmessage = decrypt.decryptMessage(request.POST['message'])
+
+    fields = ['message','key']
+    decryptmessage,key = decryptPostInfo(request,fields)
     dictdecryptMessage = json.loads(decryptmessage)
     code = dictdecryptMessage['code']
 
@@ -309,7 +301,7 @@ def getVerify(request):
         express = express[0]
     except IndexError, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
-        response = {'feedback': feedback}
+        response = {'feedback': encrypt(key,feedback)}
         return JsonResponse(response)
 
     rcvPhone = express.receive_phone
@@ -338,14 +330,14 @@ def getVerify(request):
         feedback = '验证码已发送'
         
     express.save()
-    response = {'feedback':feedback}
+    response = {'feedback':encrypt(key,feedback)}
     return JsonResponse(response)
 
 @csrf_exempt
 def authVerify(request):
 
-    verify = decrypt.decryptMessage(request.POST['verify'])
-    decryptmessage = decrypt.decryptMessage(request.POST['message'])
+    fields = ['verify','message','key']
+    verify,decryptmessage,key = decryptPostInfo(request,fields)
 
     # decryptmessage = decrypt.decryptMessage(encryptmessage)
     dictdecryptmessage = json.loads(decryptmessage)
@@ -356,7 +348,7 @@ def authVerify(request):
         express = express[0]
     except IndexError, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
-        response = {'feedback': feedback}
+        response = {'feedback': encrypt(key,feedback)}
         return JsonResponse(response)
     # 1.during 3 minutes
     try:
@@ -377,14 +369,15 @@ def authVerify(request):
         feedback = '很抱歉，该快件没有对应的快递员或者数据库没有该快件的验证码，无法进行验证'
 
 
-    response = {'feedback':feedback}
+    response = {'feedback':encrypt(key,feedback)}
 
     return JsonResponse(response)
 
 @csrf_exempt
 def authPost(request):
 
-    decryptmessage = decrypt.decryptMessage(request.POST['message'])
+    fields = ['message','key']
+    decryptmessage,key = decryptPostInfo(request,fields)
     dictdecryptMessage = json.loads(decryptmessage)
     code = dictdecryptMessage['code']
 
@@ -393,12 +386,12 @@ def authPost(request):
         express = express[0]
     except IndexError, e:
         feedback = '很抱歉，该快件ＩＤ不存在'
-        response = {'feedback': feedback}
+        response = {'feedback': encrypt(key,feedback)}
         return JsonResponse(response)
 
     express.auth = True
     express.save()
-    response = {'flag':1}
+    response = {'flag':encrypt(key,'1')}
     return JsonResponse(response)
 
 # test for mongoengine ORM
