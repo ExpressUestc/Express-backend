@@ -77,12 +77,12 @@ def authDeliver(request):
     fields = ['deliverPhone','deliverID','key']
     deliverPhone,deliverID,key = decryptPostInfo(request,fields)
     
-    flag = 1
+    flag = '1'
     try:
         deliverman = AuthDeliver.objects(deliverPhone=deliverPhone,deliverID=deliverID)
         deliverman = deliverman[0]
     except IndexError,e:
-        flag = 0
+        flag = '0'
 
     response = {'flag':encrypt(key,flag)}
 
