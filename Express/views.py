@@ -198,7 +198,7 @@ def find(request):
 	return JsonResponse(response)
     # 5. get pos
     pos = express.pos
-    response = {'pos':encrypt(key,pos)}
+    response = {'pos':encrypt(key,pos.encode('utf-8'))}
     return JsonResponse(response)
 
 @csrf_exempt
@@ -274,11 +274,11 @@ def auth(request):
     # if auth fails ,send warning message to the deliverman
     # Todo: response has a lot to consider
 
-    flag = 1
+    flag = '1'
     try:
         if express.receive_phone != rcvPhone:
             sendmessage.warn(code, express.deliverman.deliverPhone)
-            flag = 0
+            flag = '0'
             response = '抱歉，手机号验证失败'
         else:
             response = '恭喜，手机号验证成功，稍后我们会给您发送一条验证码，请耐心等待'
