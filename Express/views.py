@@ -169,7 +169,7 @@ def sending(request):
     if final:
         feedback = '位置已上传'
     else:
-        feedback = '位置已上传,下一站是'+express.path[express.path.index(city.encode('utf-8'))+1]
+        feedback = '位置已上传,下一站是'+express.path[express.path.index(city.encode('utf-8'))+1].encode('utf-8')
     response = {'feedback':encrypt(key,feedback)}
     return JsonResponse(response)
 
