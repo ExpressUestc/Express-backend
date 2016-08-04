@@ -171,7 +171,10 @@ def sending(request):
 
     # Todo:add if else
     # 6.create response
-    feedback = '位置已上传'
+    if final:
+        feedback = '位置已上传'
+    else:
+        feedback = '位置已上传,下一站是'+express.path[express.path.index(city.encode('utf-8'))+1]
     response = {'feedback':encrypt(key,feedback)}
     return JsonResponse(response)
 
