@@ -116,7 +116,7 @@ def sending(request):
     # 4.save deliverPhone
     deliverman = DeliverMan.objects.create(deliverPhone=deliverPhone, deliverID=deliverID)
     deliverman.save()
-    express.update_one(push__deliverman=deliverman)
+    express.update(push__deliverman=deliverman)
 
     final = False
     if city.encode('utf-8') == express.path[-1]:
@@ -225,7 +225,7 @@ def distribute(request):
 
     deliverman = DeliverMan.objects.create(deliverPhone=deliverPhone, deliverID=deliverID)
     deliverman.save()
-    express.update_one(push__deliverman=deliverman)
+    express.update(push__deliverman=deliverman)
 
     express.save()
     # send message to receiver and return the response
