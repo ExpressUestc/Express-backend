@@ -43,7 +43,7 @@ class Express(Document):
     task_id = StringField()
     auth = BooleanField(default=False)
     #
-    deliverman = ReferenceField(DeliverMan,reverse_delete_rule=CASCADE)
+    deliverman = ListField(ReferenceField(DeliverMan,reverse_delete_rule=CASCADE))
     verifycode = ReferenceField(VerifyCode,reverse_delete_rule=CASCADE)
 
     def __str__(self):

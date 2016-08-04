@@ -114,14 +114,9 @@ def sending(request):
         return JsonResponse({'feedback':encrypt(key,'抱歉，您的快递单未经验证，无法转运')})
 
     # 4.save deliverPhone
-    try:
-        express.deliverman.deliverPhone = deliverPhone
-        express.deliverman.deliverID = deliverID
-        express.deliverman.save()
-    except AttributeError,e:
-        deliverman = DeliverMan.objects.create(deliverPhone=deliverPhone, deliverID=deliverID)
-        deliverman.save()
-        express.deliverman = deliverman
+    deliverman = DeliverMan.objects.create(deliverPhone=deliverPhone, deliverID=deliverID)
+    deliverman.save()
+    express.update_one(push__deliverman=deliverman)
 
     final = False
     if city.encode('utf-8') == express.path[-1]:
@@ -227,15 +222,11 @@ def distribute(request):
     goods = express.goods
     rcvPhone = express.receive_phone
     # saving deliverPhone into database
-    # Todo:the Chinese character in the message have bugs
-    try:
-        express.deliverman.deliverPhone = deliverPhone
-        express.deliverman.deliverID = deliverID
-        express.deliverman.save()
-    except AttributeError,e:
-        deliverman = DeliverMan.objects.create(deliverPhone=deliverPhone,deliverID=deliverID)
-        deliverman.save()
-        express.deliverman = deliverman
+
+    deliverman = DeliverMan.objects.create(deliverPhone=deliverPhone, deliverID=deliverID)
+    deliverman.save()
+    express.update_one(push__deliverman=deliverman)
+
     express.save()
     # send message to receiver and return the response
     #response_temp =  sendmessage.distribute(rcvName,goods,rcvAddress,code,rcvPhone,deliverPhone)
