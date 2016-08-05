@@ -268,14 +268,14 @@ def auth(request):
     # if auth fails ,send warning message to the deliverman
     # Todo: response has a lot to consider
 
-    flag = '1'
     try:
         if express.receive_phone != rcvPhone:
-            sendmessage.warn(code, express.deliverman.deliverPhone)
+            sendmessage.warn(code, express.deliverman[-1].deliverPhone)
             flag = '0'
             response = '抱歉，手机号验证失败'
         else:
             response = '恭喜，手机号验证成功，稍后我们会给您发送一条验证码，请耐心等待'
+            flag = '1'
     except AttributeError,e:
         response = '对不起，该快件没有对应的快递员'
 
